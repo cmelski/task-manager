@@ -1,0 +1,103 @@
+{% from "bootstrap5/form.html" import render_form %}
+<!DOCTYPE HTML>
+
+
+<html xmlns="http://www.w3.org/1999/html">
+	<head>
+		<title>Login</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="../static/assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="../static/assets/css/noscript.css" /></noscript>
+	</head>
+	<body class="is-preload">
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+					<header id="header">
+						<div class="inner">
+
+								<!-- Logo -->
+								<a href="" class="logo">
+									<span class="title"></span>
+									<img src="/static/images/ToDo.jpeg">
+
+								</a>
+
+
+							<!-- Nav -->
+								<nav>
+									<ul>
+										<li><a href="#menu">Menu</a></li>
+									</ul>
+								</nav>
+
+						</div>
+					</header>
+
+				<!-- Menu -->
+					<nav id="menu">
+						<h2>Menu</h2>
+						<ul>
+							<li><a href="{{ url_for('home')}}">Home</a></li>
+							{% if not current_user.is_authenticated: %}
+							<li><a href="{{ url_for('login') }}">Log In</a></li>
+							<li><a href="{{ url_for('register_user') }}">Register</a></li>
+							{% endif %}
+							{% if current_user.is_authenticated: %}
+							<li><a href="{{ url_for('logout') }}">Log Out</a></li>
+							{% endif %}
+						</ul>
+					</nav>
+
+				<!-- Main -->
+					<div id="main" style="background-image: url('/static/images/checklist.jpeg'); background-size: cover; background-repeat: no-repeat">
+						<div class="inner">
+							<span style="font-size: 30px;font-weight: bold">Login</span><br><br>
+							{% with messages = get_flashed_messages() %}
+      						{% if messages %}
+      						{% for message in messages %}
+      						<p class="flash" style="font-size: 20px;color:#ff0000; font-weight: bold; font-style: italic">{{ message }} </p>
+      						{% endfor %}
+      						{% endif %}
+      						{% endwith %}
+							<div class="fields">
+								<div class="field half">
+        							{% if error: %}
+        								<p class="flash" style="font-size: 20px;color:#ff0000; font-weight: bold; font-style: italic">{{ error }} </p>
+											{% endif %}
+
+								{{ render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+								</div>
+							</div>
+
+
+						</div>
+
+
+
+					</div>
+
+				<!-- Footer -->
+					<footer id="footer">
+						<div class="inner">
+
+
+							<ul class="copyright">
+								<li>&copy; Untitled. All rights reserved</li>
+							</ul>
+						</div>
+					</footer>
+
+			</div>
+
+		<!-- Scripts -->
+			<script src="../static/assets/js/jquery.min.js"></script>
+			<script src="../static/assets/js/browser.min.js"></script>
+			<script src="../static/assets/js/breakpoints.min.js"></script>
+			<script src="../static/assets/js/util.js"></script>
+			<script src="../static/assets/js/main.js"></script>
+
+	</body>
+</html>

@@ -1,0 +1,268 @@
+<!DOCTYPE HTML>
+
+
+<html xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+	<head>
+		<title>List Details</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="stylesheet" href="/static/assets/css/main.css" />
+		<noscript><link rel="stylesheet" href="/static/assets/css/noscript.css" /></noscript>
+		<style>
+      input {
+         font-weight:bold;
+         color: #818385;
+      }
+
+/* Tooltip container */
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 0px dotted black; /* If you want dots under the hoverable text */
+}
+
+/* Tooltip text */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 100px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  padding: 0px 0;
+  border-radius: 6px;
+  font-size: 16px;
+
+  /* Position the tooltip text - see examples below! */
+  position: absolute;
+  z-index: 1;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+      </style>
+	</head>
+	<body class="is-preload">
+		<!-- Wrapper -->
+			<div id="wrapper">
+
+				<!-- Header -->
+					<header id="header">
+						<div class="inner">
+
+								<!-- Logo -->
+								<a href="" class="logo">
+									<span class="title"></span>
+									<img src="/static/images/ToDo.jpeg">
+
+								</a>
+
+							<!-- Nav -->
+								<nav>
+									<ul>
+										{% if current_user.is_authenticated: %}
+										<div class="tooltip"><span style="font-size: 24px;">👤</span><span class="tooltiptext">{{current_user.name}}</span></div>
+										<li><a href="#menu">Menu</a></li>
+
+										{% else: %}
+											<li><a href="#menu">Menu</a></li>
+										{% endif %}
+									</ul>
+								</nav>
+
+						</div>
+					</header>
+
+				<!-- Menu -->
+					<nav id="menu">
+						<h2>Menu</h2>
+						<ul>
+							<li><a href="{{ url_for('home')}}">Home</a></li>
+							{% if not current_user.is_authenticated: %}
+							<li><a href="{{ url_for('login') }}">Log In</a></li>
+							<li><a href="{{ url_for('register_user') }}">Register</a></li>
+							{% endif %}
+							{% if current_user.is_authenticated: %}
+							<li>List Actions:</li>
+							<div class="tooltip"><span style="font-size: 24px;"><a href="{{ url_for('clone_list', list_id = list_id,list_name=list_name)}}">🔁</a></span><span class="tooltiptext">Clone List</span></div><br>
+							<div class="tooltip"><span style="font-size: 24px;"><a href="{{ url_for('save_to_csv', list_id = list_id,list_name=list_name)}}">📁</a></span><span class="tooltiptext">Export to CSV</span></div>
+							<form id="my_form2" method="POST" action="{{ url_for('email_list',list_id = list_id)}}">
+								<div class="tooltip"><span style="font-size: 24px;"><a href="javascript:{}" onclick="document.getElementById('my_form2').submit();">✉️</a></span><span class="tooltiptext">Email List</span></div>
+								<input type="text" style="font-style: italic" name="recipient" id="recipient2" placeholder="<Recipient Email>"/>
+							</form>
+							<li><a href="{{ url_for('logout') }}">Log Out</a></li>
+							{% endif %}
+
+						</ul>
+					</nav>
+
+				<!-- Main -->
+					<div id="main" style="background-image: url('/static/images/checklist.jpeg'); background-size: cover; background-repeat: no-repeat">
+						<div class = "inner">
+							  {% with messages = get_flashed_messages() %}
+      							{% if messages %}
+      							{% for message in messages %}
+      							<p class="flash" style="font-size: 20px;color:#ff0000; font-weight: bold; font-style: italic">{{ message }} </p>
+      							{% endfor %}
+      							{% endif %}
+      							{% endwith %}
+
+
+
+							<form id=500 method = "POST" action="{{ url_for('update_list_name',list_id = list_id)}}">
+								<div class="fields">
+									<div class="field half">
+
+										<input type="text" name="list_name" style="font-size: 30px;font-weight: bold" value="{{list_name}}" />
+
+									</div>
+								</div>
+							</form>
+
+
+
+							</form>
+
+
+							<table>
+           				<thead>
+            			<tr>
+                		<th scope="col">Task Name</th>
+                		<th scope="col">Due Date</th>
+							<th scope="col">Assignee</th>
+							<th scope="col">Notes</th>
+							<th scope="col">Completed</th>
+							<th scope="col"></th>
+							<th scope="col"><div class="tooltip"><span style="font-size: 24px;"><a href="javascript:{}" onclick="document.getElementById('item_list').submit();">💾</a></span><span class="tooltiptext">Save All</span></div></th>
+
+            			</tr>
+
+           				</thead>
+
+          				<tbody>
+
+
+							<form id = "item_list" method = "POST" action="{{ url_for('update_all_list_items',list_id = list_id)}}">
+
+								<tr>
+									{% set data = [] %}
+								{% for i in range(0,requested_list|length): %}
+								{% set n = i|string %}
+
+								<td><input id = {{requested_list[i].id}} type="text" style="font-weight:bold;color: #818385;" name="task_{{n}}" value="{{requested_list[i].task}}" /></td>
+								<td><input type="date" name="due_{{n}}" value="{{requested_list[i].due_date}}" /></td>
+								<td><input type="text" name="assign_{{n}}" list="assignPerson" value="{{requested_list[i].assignee}}"/>
+									<datalist id="assignPerson">
+  										<option value="Chris">Chris</option>
+  										<option value="Karen">Karen</option>
+									</datalist></td>
+								<td><textarea name="notes_{{n}}" rows="3" cols="8" style="background-color:#ffffff;font-size: 14px">{{requested_list[i].notes}}</textarea></td>
+								{% if requested_list[i].completed == 1: %}
+								<td><input type="checkbox" name="complete_{{n}}" checked style="opacity:1;appearance:checkbox;margin-right:0" /></td>
+								{% else: %}
+								<td><input type="checkbox" name="complete_{{n}}" style="opacity:1;appearance:checkbox;margin-right:0" /></td>
+								{% endif %}
+
+
+							<td><div class="tooltip"><a href="{{ url_for('delete_list_item',list_item_id=requested_list[i].id,list_id = list_id)}}">🗑️</a><span class="tooltiptext">Delete</span></div></td>
+							{% if lists|length > 1 and requested_list[i].id > 0: %}
+								<td><div class="tooltip"><a href="{{ url_for('move_list_item',list_item_id=requested_list[i].id)}}">➡️</a><span class="tooltiptext">Move</span></div></td>
+							{% else: %}
+
+							{% endif %}
+								</tr>
+								{% do data.append(requested_list[i].id) %}
+								{% endfor %}
+
+
+								<input type="hidden" name="ids" value="{{ data }}">
+
+								</form>
+
+								{% for i in range(0,requested_list|length): %}
+								{% if (i == requested_list|length -1): %}
+
+							<tr style="background-color:#aebbd1">
+							<form id="add_item_1" method="POST" action="{{ url_for('add_list_item',list_id = list_id)}}">
+								<td><input type="text" id = "add" style="font-weight:bold;color: #818385;" name="new_task" placeholder="<Add New Task>" /></td>
+								<td><input type="date" name="new_due_date" /></td>
+								<td><input type="text" name="new_assignee" list="assignName" />
+								<datalist id="assignName">
+  									<option value="Chris">Chris</option>
+  									<option value="Karen">Karen</option>
+									</datalist></td>
+								<td><textarea name="new_notes" rows="3" cols="8" style="background-color:#ffffff;font-size: 14px"></textarea></td>
+								<td><input type="checkbox" name="new_complete" style="opacity:1;appearance:checkbox;margin-right:0" /></td>
+
+								<td><div class="tooltip"><span style="font-size: 24px;"><a href="javascript:{}" onclick="document.getElementById('add_item_1').submit();">➕</a></span><span class="tooltiptext">Add</span></div></td>
+
+								<td></td>
+
+
+							</form>
+
+
+							</tr>
+								{% endif %}
+
+						{% endfor %}
+
+
+
+						{% if requested_list|length == 0: %}
+							<tr style="background-color:#aebbd1">
+							<form id="add_item_2" method="POST" action="{{ url_for('add_list_item',list_id = list_id)}}">
+								<td><input type="text" id = "add" style="font-weight:bold;color: #818385;" name="new_task" placeholder="<Add New Task>" /></td>
+								<td><input type="date" name="new_due_date" /></td>
+								<td><input type="text" name="new_assignee" list="assignName" />
+								<datalist id="assignName">
+  									<option value="Chris">Chris</option>
+  									<option value="Karen">Karen</option>
+									</datalist></td>
+								<td><textarea name="new_notes" rows="3" cols="8" style="background-color:#ffffff;font-size: 14px"></textarea></td>
+								<td><input type="checkbox" name="new_complete" style="opacity:1;appearance:checkbox;margin-right:0" /></td>
+								<td><div class="tooltip"><span style="font-size: 24px;"><a href="javascript:{}" onclick="document.getElementById('add_item_2').submit();">➕</a></span><span class="tooltiptext">Add</span></div></td>
+
+								<td></td>
+
+
+							</form>
+
+
+							</tr>
+
+						{% endif %}
+
+					</tbody>
+						</table>
+
+
+						</div>
+
+
+					</div>
+
+				<!-- Footer -->
+					<footer id="footer">
+						<div class="inner">
+							<ul class="copyright">
+								<li>&copy; Untitled. All rights reserved</li>
+							</ul>
+						</div>
+					</footer>
+
+			</div>
+
+		<!-- Scripts -->
+
+
+			<script src="../static/assets/js/jquery.min.js"></script>
+			<script src="../static/assets/js/browser.min.js"></script>
+			<script src="../static/assets/js/breakpoints.min.js"></script>
+			<script src="../static/assets/js/util.js"></script>
+			<script src="../static/assets/js/main.js"></script>
+
+	</body>
+</html>
