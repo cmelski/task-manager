@@ -25,8 +25,6 @@ MY_EMAIL = os.environ.get('MY_EMAIL')
 MY_PASSWORD = os.environ.get('MY_PASSWORD')
 import csv
 import os, sys, shutil, os.path
-import matplotlib
-matplotlib.use("Qt5Agg")
 from flask import send_file
 
 
