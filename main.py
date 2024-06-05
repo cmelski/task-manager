@@ -432,10 +432,17 @@ def email_list(list_id):
 @logged_in_only
 def outstanding_task_report():
     print(current_user.id)
-    result = db.session.query(ListTitle,ListItem).filter(
-        ListTitle.user_id == current_user.id,).filter(
-        ListTitle.id == ListItem.list_id,).filter(
-        ListItem.completed == 0,).all()
+    try:
+        result = db.session.query(ListTitle,ListItem).filter(
+            ListTitle.user_id == current_user.id,).filter(
+            ListTitle.id == ListItem.list_id,).filter(
+            ListItem.completed == 0,).all()
+    except:
+        result = db.session.query(ListTitle, ListItem).filter(
+            ListTitle.user_id == current_user.id, ).filter(
+            ListTitle.id == ListItem.list_id, ).filter(
+            ListItem.completed == False, ).all()
+
     outstanding = result
     print(outstanding)
     for i in range(0,len(outstanding)):
@@ -552,6 +559,8 @@ def save_to_csv(list_id,list_name):
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
+
 
 
 if __name__ == "__main__":
