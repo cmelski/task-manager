@@ -433,7 +433,7 @@ def email_list(list_id):
 def outstanding_task_report():
     print(current_user.id)
     try:
-        result = db.session.query(ListTitle,ListItem).filter(ListTitle.user_id == current_user.id,).filter(ListTitle.id == ListItem.list_id,).filter(ListItem.completed == 0,).all()
+        result = db.session.query(ListTitle,ListItem).filter(ListTitle.user_id == current_user.id,).filter(ListTitle.id == ListItem.list_id,).filter(ListItem.completed == '0',).all()
     except:
         result = db.session.query(ListTitle, ListItem).filter(ListTitle.user_id == current_user.id, ).filter(ListTitle.id == ListItem.list_id, ).filter(ListItem.completed == '0').all()
 
