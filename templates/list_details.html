@@ -88,10 +88,10 @@
 							<li>List Actions:</li>
 							<div class="tooltip"><span style="font-size: 24px;"><a href="{{ url_for('clone_list', list_id = list_id,list_name=list_name)}}">🔁</a></span><span class="tooltiptext">Clone List</span></div><br>
 							<div class="tooltip"><span style="font-size: 24px;"><a href="{{ url_for('save_to_csv', list_id = list_id,list_name=list_name)}}">📁</a></span><span class="tooltiptext">Export to CSV</span></div>
-							<form id="my_form2" method="POST" action="{{ url_for('email_list',list_id = list_id)}}">
+							<!-- <form id="my_form2" method="POST" action="{{ url_for('email_list',list_id = list_id)}}">
 								<div class="tooltip"><span style="font-size: 24px;"><a href="javascript:{}" onclick="document.getElementById('my_form2').submit();">✉️</a></span><span class="tooltiptext">Email List</span></div>
 								<input type="text" style="font-style: italic" name="recipient" id="recipient2" placeholder="<Recipient Email>"/>
-							</form>
+							</form> -->
 							<li><a href="{{ url_for('logout') }}">Log Out</a></li>
 							{% endif %}
 

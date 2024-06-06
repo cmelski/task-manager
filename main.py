@@ -227,43 +227,48 @@ def update_all_list_items(list_id):
 
 
     if request.method == "POST":
-        ids = request.form.get("ids")
-        print(ids)
-        for char in ids:
-            if char.isdigit():
-                id_string += char
-            if char == ",":
-                id_string += char
-        print(id_string)
-        id_list = id_string.split(",")
-        print(id_list)
+        if request.form.get("ids"):
+            ids = request.form.get("ids")
+            if ids[1].isdigit() > 0:
+                print(ids)
+                print("test")
+                for char in ids:
+                    if char.isdigit():
+                        id_string += char
+                    if char == ",":
+                        id_string += char
+                print(id_string)
+                id_list = id_string.split(",")
+                print(id_list)
 
-        for i in range(0, len(id_list)):
-            result = db.session.execute(db.select(ListItem).where
+                for i in range(0, len(id_list)):
+                    result = db.session.execute(db.select(ListItem).where
                                         (ListItem.id == id_list[i]))
-            item = result.scalar()
+                    item = result.scalar()
 
-            n = str(i)
+                    n = str(i)
 
-            #item = db.get_or_404(ListItem, id_list[i])
-            print(item)
-            item.task = request.form[f"task_{n}"]
-            print(item.task)
-            item.due_date = request.form[f"due_{n}"]
-            print(item.due_date)
-            item.assignee = request.form[f"assign_{n}"]
-            print(item.assignee)
-            item.notes = request.form[f"notes_{n}"]
-            print(item.notes)
-            if request.form.get(f"complete_{n}", True):
-                if request.form.get(f"complete_{n}"):
-                    item.completed = 1
-                else:
-                    item.completed = 0
-            print(item.completed)
+                    #item = db.get_or_404(ListItem, id_list[i])
+                    print(item)
+                    item.task = request.form[f"task_{n}"]
+                    print(item.task)
+                    item.due_date = request.form[f"due_{n}"]
+                    print(item.due_date)
+                    item.assignee = request.form[f"assign_{n}"]
+                    print(item.assignee)
+                    item.notes = request.form[f"notes_{n}"]
+                    print(item.notes)
+                    if request.form.get(f"complete_{n}", True):
+                        if request.form.get(f"complete_{n}"):
+                            item.completed = 1
+                        else:
+                            item.completed = 0
+                    print(item.completed)
 
-            item.list_id = list_id
-            db.session.commit()
+                    item.list_id = list_id
+                    db.session.commit()
+            else:
+                flash("Please add at least 1 item to the list first")
 
         return redirect(url_for("show_list_details", list_id=list_id))
 
