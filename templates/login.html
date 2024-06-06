@@ -9,6 +9,11 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="../static/assets/css/main.css" />
 		<noscript><link rel="stylesheet" href="../static/assets/css/noscript.css" /></noscript>
+		<style>
+p.error {
+  color: red;
+}
+</style>
 	</head>
 	<body class="is-preload">
 		<!-- Wrapper -->
@@ -40,13 +45,13 @@
 					<nav id="menu">
 						<h2>Menu</h2>
 						<ul>
-							<li><a href="{{ url_for('home')}}">Home</a></li>
+							<li style="font-weight: bold"><a href="{{ url_for('home')}}">Home</a></li>
 							{% if not current_user.is_authenticated: %}
-							<li><a href="{{ url_for('login') }}">Log In</a></li>
-							<li><a href="{{ url_for('register_user') }}">Register</a></li>
+							<li style="font-weight: bold"><a href="{{ url_for('login') }}">Log In</a></li>
+							<li style="font-weight: bold"><a href="{{ url_for('register_user') }}">Register</a></li>
 							{% endif %}
 							{% if current_user.is_authenticated: %}
-							<li><a href="{{ url_for('logout') }}">Log Out</a></li>
+							<li style="font-weight: bold"><a href="{{ url_for('logout') }}">Log Out</a></li>
 							{% endif %}
 						</ul>
 					</nav>
@@ -62,14 +67,17 @@
       						{% endfor %}
       						{% endif %}
       						{% endwith %}
-							<div class="fields">
-								<div class="field half">
-        							{% if error: %}
-        								<p class="flash" style="font-size: 20px;color:#ff0000; font-weight: bold; font-style: italic">{{ error }} </p>
-											{% endif %}
+
+
+							<div style="width: 50%">
+
+								{% if error: %}
+								<p class=error><strong>Error:</strong> {{ error }}</p>
+								{% endif %}
 
 								{{ render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
-								</div>
+
+
 							</div>
 
 

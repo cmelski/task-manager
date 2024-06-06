@@ -79,20 +79,26 @@
 					<nav id="menu">
 						<h2>Menu</h2>
 						<ul>
-							<li><a href="{{ url_for('home')}}">Home</a></li>
+							<li style="font-weight: bold"><a href="{{ url_for('home')}}">Home</a></li>
 							{% if not current_user.is_authenticated: %}
-							<li><a href="{{ url_for('login') }}">Log In</a></li>
-							<li><a href="{{ url_for('register_user') }}">Register</a></li>
+							<li style="font-weight: bold"><a href="{{ url_for('login') }}">Log In</a></li>
+							<li style="font-weight: bold"><a href="{{ url_for('register_user') }}">Register</a></li>
 							{% endif %}
 							{% if current_user.is_authenticated: %}
-							<li>List Actions:</li>
+							<li style="font-weight: bold">List Actions:</li>
 							<div class="tooltip"><span style="font-size: 24px;"><a href="{{ url_for('clone_list', list_id = list_id,list_name=list_name)}}">🔁</a></span><span class="tooltiptext">Clone List</span></div><br>
 							<div class="tooltip"><span style="font-size: 24px;"><a href="{{ url_for('save_to_csv', list_id = list_id,list_name=list_name)}}">📁</a></span><span class="tooltiptext">Export to CSV</span></div>
 							<!-- <form id="my_form2" method="POST" action="{{ url_for('email_list',list_id = list_id)}}">
 								<div class="tooltip"><span style="font-size: 24px;"><a href="javascript:{}" onclick="document.getElementById('my_form2').submit();">✉️</a></span><span class="tooltiptext">Email List</span></div>
 								<input type="text" style="font-style: italic" name="recipient" id="recipient2" placeholder="<Recipient Email>"/>
 							</form> -->
-							<li><a href="{{ url_for('logout') }}">Log Out</a></li>
+							<li style="font-weight: bold">All Lists:</li>
+							{% for list in lists: %}
+
+							<object style="text-indent: 50px"><a style="color: white; font-size: 16px" href="{{ url_for('show_list_details',list_id = list.id) }}">{{list.name}}</a></object><br>
+
+								{% endfor %}
+							<li style="font-weight: bold"><a href="{{ url_for('logout') }}">Log Out</a></li>
 							{% endif %}
 
 						</ul>

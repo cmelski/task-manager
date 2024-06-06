@@ -39,13 +39,13 @@
 					<nav id="menu">
 						<h2>Menu</h2>
 						<ul>
-							<li><a href="{{ url_for('home')}}">Home</a></li>
+							<li style="font-weight: bold"><a href="{{ url_for('home')}}">Home</a></li>
 							{% if not current_user.is_authenticated: %}
-							<li><a href="{{ url_for('login') }}">Log In</a></li>
-							<li><a href="{{ url_for('register_user') }}">Register</a></li>
+							<li style="font-weight: bold"><a href="{{ url_for('login') }}">Log In</a></li>
+							<li style="font-weight: bold"><a href="{{ url_for('register_user') }}">Register</a></li>
 							{% endif %}
 							{% if current_user.is_authenticated: %}
-							<li><a href="{{ url_for('logout') }}">Log Out</a></li>
+							<li style="font-weight: bold"><a href="{{ url_for('logout') }}">Log Out</a></li>
 							{% endif %}
 						</ul>
 					</nav>
@@ -55,7 +55,9 @@
 
 						<div class="inner">
 							<span style="font-size: 30px;font-weight: bold">Register</span><br><br>
+							<div style="width: 50%">
 							{{ render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+							</div>
 
 						</div>
 
