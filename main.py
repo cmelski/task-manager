@@ -23,9 +23,12 @@ from flask_ckeditor import CKEditorField
 from email.message import EmailMessage
 MY_EMAIL = os.environ.get('MY_EMAIL')
 MY_PASSWORD = os.environ.get('MY_PASSWORD')
+SEND_GRID = os.environ.get('SENDGRID_API_KEY')
 import csv
 import os, sys, shutil, os.path
 from flask import send_file
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 
 
@@ -428,6 +431,57 @@ def email_list(list_id):
 
         flash("Email Sent")
         return redirect(url_for("show_list_details", list_id=list_id))
+
+    else:
+        flash("Please enter a valid email address")
+        return redirect(url_for("show_list_details", list_id=list_id))
+
+@app.route("/email_list/<int:list_id>", methods=["GET", "POST"])
+@logged_in_only
+def email_list_send_grid(list_id):
+    if request.form["recipient"]:
+        list_name = db.get_or_404(ListTitle, list_id)
+        l_name = list_name.name
+        result = db.session.execute(db.select(ListItem).where
+                                (ListItem.list_id == list_id))
+
+        list_items = result.scalars().all()
+        list_dict = {}
+        email_string = ""
+        for i in range(0, len(list_items)):
+            print(list_items)
+            list_dict[i] = {"Task": list_items[i].task,
+                            "Due Date": list_items[i].due_date,
+                            "Assignee": list_items[i].assignee,
+                            "Notes": list_items[i].notes,
+                            "Completed": list_items[i].completed,
+                            }
+            if list_items[i].completed == 1:
+                complete = "Yes"
+            else:
+                complete = "Pending"
+
+            email_string += (f"{i + 1}. {list_items[i].task}\n"
+                            f"Due Date: {list_items[i].due_date}\n"
+                            f"Assignee: {list_items[i].assignee}\n"
+                            f"Notes: {list_items[i].notes}\n"
+                            f"Completed: {complete}\n\n")
+
+        message = Mail(
+            from_email=MY_EMAIL,
+            to_emails=request.form["recipient"],
+            subject=f"{l_name}",
+            html_content=email_string)
+        try:
+            sg = SendGridAPIClient(os.environ.get(SEND_GRID))
+            response = sg.send(message)
+            print(response.status_code)
+            print(response.body)
+            print(response.headers)
+            flash("Email Sent")
+            return redirect(url_for("show_list_details", list_id=list_id))
+        except Exception as e:
+            print(e.message)
 
     else:
         flash("Please enter a valid email address")
