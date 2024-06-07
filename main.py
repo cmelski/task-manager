@@ -471,7 +471,8 @@ def email_list_send_grid(list_id):
             from_email=MY_EMAIL,
             to_emails=request.form["recipient"],
             subject=f"{l_name}",
-            html_content=email_string)
+            #html_content=email_string)
+            plain_text_content=email_string)
         try:
             sg = SendGridAPIClient(SEND_GRID)
             response = sg.send(message)
