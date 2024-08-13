@@ -96,7 +96,7 @@
 					<nav id="menu">
 						<h2>Menu</h2>
 						<ul>
-							<li style="font-weight: bold"><a href="{{ url_for('home')}}">Hom</a></li>
+							<li style="font-weight: bold"><a href="{{ url_for('home')}}">Home</a></li>
 							{% if not current_user.is_authenticated: %}
 							<li style="font-weight: bold"><a href="{{ url_for('login') }}">Log In</a></li>
 							<li style="font-weight: bold"><a href="{{ url_for('register_user') }}">Register</a></li>
