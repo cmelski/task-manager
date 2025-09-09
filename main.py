@@ -1,6 +1,6 @@
 from __future__ import annotations
 from datetime import date,datetime
-from flask import Flask, abort, render_template, redirect, url_for, flash,request
+from flask import Flask, abort, render_template, redirect, url_for, flash, request, jsonify
 from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
 from flask_login import UserMixin, AnonymousUserMixin,login_user, LoginManager, current_user, logout_user
@@ -96,6 +96,18 @@ class ListTitle(db.Model):
     #cascade as below will delete child records if parent record is deleted
     list_items = relationship("ListItem", cascade="all, delete-orphan", back_populates="item_name")
 
+    def to_dict(self):
+        # Method 1.
+        dictionary = {}
+        # Loop through each column in the data record
+        for column in self.__table__.columns:
+            # Create a new dictionary entry;
+            # where the key is the name of the column
+            # and the value is the value of the column
+            dictionary[column.name] = getattr(self, column.name)
+        print(dictionary)
+        return dictionary
+
 class ListItem(db.Model):
     __tablename__ = "items"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -140,6 +152,15 @@ def logged_in_only(f):
 
     return decorated_function
 
+
+@app.route("/all")
+def get_all_lists():
+    result = db.session.execute(db.select(ListTitle).order_by(ListTitle.name))
+    all_lists = result.scalars().all()
+    list_of_lists = []
+    for list_name in all_lists:
+        list_of_lists.append(list_name.to_dict())
+    return jsonify(lists=list_of_lists)
 @app.route('/register', methods=["GET","POST"])
 def register_user():
     register_form = RegisterUserForm()
