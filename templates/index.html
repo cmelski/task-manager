@@ -124,7 +124,7 @@
 										<div class="content">
 
 												{% for list in all_lists: %}
-											<object><a href="{{ url_for('show_list_details',list_id = list.id) }}">{{list.name}}</a> <a href="{{ url_for('delete_list',list_id = list.id)}}">✘</a></object><br>
+											<object><a href="{{ url_for('show_list_details',list_id = list[0]) }}">{{list[2]}}</a> <a href="{{ url_for('delete_list',list_id = list[0])}}">✘</a></object><br>
 													{% endfor %}
 											<div class="tooltip">
 												<object><a href="{{ url_for('add_new_list') }}">➕</a></object>

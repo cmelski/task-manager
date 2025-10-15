@@ -88,14 +88,14 @@
 							<li style="font-weight: bold">List Actions:</li>
 							<div class="tooltip"><span style="font-size: 24px;"><a href="{{ url_for('clone_list', list_id = list_id,list_name=list_name)}}">🔁</a></span><span class="tooltiptext">Clone List</span></div><br>
 							<div class="tooltip"><span style="font-size: 24px;"><a href="{{ url_for('save_to_csv', list_id = list_id,list_name=list_name)}}">📁</a></span><span class="tooltiptext">Export to CSV</span></div>
-							<form id="my_form2" method="POST" action="{{ url_for('email_list_send_grid',list_id = list_id)}}">
+							<form id="my_form2" method="POST" action="{{ url_for('email_list',list_id = list_id)}}">
 								<div class="tooltip"><span style="font-size: 24px;"><a href="javascript:{}" onclick="document.getElementById('my_form2').submit();">✉️</a></span><span class="tooltiptext">Email List</span></div>
 								<input type="text" style="font-style: italic" name="recipient" id="recipient2" placeholder="<Recipient Email>"/>
 							</form>
 							<li style="font-weight: bold">All Lists:</li>
 							{% for list in lists: %}
 
-							<object style="text-indent: 50px"><a style="color: white; font-size: 16px" href="{{ url_for('show_list_details',list_id = list.id) }}">{{list.name}}</a></object><br>
+							<object style="text-indent: 50px"><a style="color: white; font-size: 16px" href="{{ url_for('show_list_details',list_id = list[0]) }}">{{list[2]}}</a></object><br>
 
 								{% endfor %}
 							<li style="font-weight: bold"><a href="{{ url_for('logout') }}">Log Out</a></li>
@@ -157,29 +157,29 @@
 								{% for i in range(0,requested_list|length): %}
 								{% set n = i|string %}
 
-								<td><input id = {{requested_list[i].id}} type="text" style="font-weight:bold;color: #818385;" name="task_{{n}}" value="{{requested_list[i].task}}" /></td>
-								<td><input type="date" name="due_{{n}}" value="{{requested_list[i].due_date}}" /></td>
-								<td><input type="text" name="assign_{{n}}" list="assignPerson" value="{{requested_list[i].assignee}}"/>
+								<td><input id = {{requested_list[i].id}} type="text" style="font-weight:bold;color: #818385;" name="task_{{n}}" value="{{requested_list[i][2]}}" /></td>
+								<td><input type="date" name="due_{{n}}" value="{{requested_list[i][3]}}" /></td>
+								<td><input type="text" name="assign_{{n}}" list="assignPerson" value="{{requested_list[i][4]}}"/>
 									<datalist id="assignPerson">
   										<option value="Chris">Chris</option>
   										<option value="Karen">Karen</option>
 									</datalist></td>
-								<td><textarea name="notes_{{n}}" rows="3" cols="8" style="background-color:#ffffff;font-size: 14px">{{requested_list[i].notes}}</textarea></td>
-								{% if requested_list[i].completed == 1: %}
+								<td><textarea name="notes_{{n}}" rows="3" cols="8" style="background-color:#ffffff;font-size: 14px">{{requested_list[i][5]}}</textarea></td>
+								{% if requested_list[i][6] == 1: %}
 								<td><input type="checkbox" name="complete_{{n}}" checked style="opacity:1;appearance:checkbox;margin-right:0" /></td>
 								{% else: %}
 								<td><input type="checkbox" name="complete_{{n}}" style="opacity:1;appearance:checkbox;margin-right:0" /></td>
 								{% endif %}
 
 
-							<td><div class="tooltip"><a href="{{ url_for('delete_list_item',list_item_id=requested_list[i].id,list_id = list_id)}}">🗑️</a><span class="tooltiptext">Delete</span></div></td>
-							{% if lists|length > 1 and requested_list[i].id > 0: %}
-								<td><div class="tooltip"><a href="{{ url_for('move_list_item',list_item_id=requested_list[i].id)}}">➡️</a><span class="tooltiptext">Move</span></div></td>
+							<td><div class="tooltip"><a href="{{ url_for('delete_list_item',list_item_id=requested_list[i][0],list_id = list_id)}}">🗑️</a><span class="tooltiptext">Delete</span></div></td>
+							{% if lists|length > 1 and requested_list[i][0] > 0: %}
+								<td><div class="tooltip"><a href="{{ url_for('move_list_item',list_item_id=requested_list[i][0])}}">➡️</a><span class="tooltiptext">Move</span></div></td>
 							{% else: %}
 
 							{% endif %}
 								</tr>
-								{% do data.append(requested_list[i].id) %}
+								{% do data.append(requested_list[i][0]) %}
 								{% endfor %}
 
 
