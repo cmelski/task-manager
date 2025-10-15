@@ -174,7 +174,7 @@
 
 							<td><div class="tooltip"><a href="{{ url_for('delete_list_item',list_item_id=requested_list[i][0],list_id = list_id)}}">🗑️</a><span class="tooltiptext">Delete</span></div></td>
 							{% if lists|length > 1 and requested_list[i][0] > 0: %}
-								<td><div class="tooltip"><a href="{{ url_for('move_list_item',list_item_id=requested_list[i][0])}}">➡️</a><span class="tooltiptext">Move</span></div></td>
+								<td><div class="tooltip"><a href="{{ url_for('delete_list_item',list_item_id=requested_list[i][0],list_id = list_id)}}">➡️</a><span class="tooltiptext">Move</span></div></td>
 							{% else: %}
 
 							{% endif %}

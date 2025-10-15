@@ -6,13 +6,7 @@ from flask import Flask, abort, render_template, redirect, url_for, flash, reque
 from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
 from flask_login import UserMixin, AnonymousUserMixin, login_user, LoginManager, current_user, logout_user
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
-from sqlalchemy import Integer, String, Text, ForeignKey, Boolean
 from werkzeug.security import generate_password_hash, check_password_hash
-# Import your forms from the forms.py
-# from forms import CreatePostForm,RegisterUserForm,LoginForm,CommentForm
-# Add additional imports
 from functools import wraps
 from flask import abort
 from email.message import EmailMessage
@@ -47,7 +41,6 @@ This will install the packages from the requirements.txt for this project.
 '''
 
 app = Flask(__name__)
-# app.config['SECRET_KEY'] = 'dsfds'
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 ckeditor = CKEditor(app)
 Bootstrap5(app)
@@ -83,16 +76,6 @@ def load_user(user_id):
     else:
         return None  # Flask-Login will treat this as not logged in
 
-
-# CREATE DATABASE
-class Base(DeclarativeBase):
-    pass
-
-
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///.db'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_URI')
-db = SQLAlchemy(model_class=Base)
-db.init_app(app)
 
 login_manager = LoginManager()
 
@@ -189,61 +172,17 @@ def create_table():
 
 # create_table()
 
-
-# CONFIGURE TABLES
-
-class User(UserMixin, db.Model):
-    __tablename__ = "users"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-
-    email: Mapped[str] = mapped_column(String(100), unique=True)
-    password: Mapped[str] = mapped_column(String(100))
-    name: Mapped[str] = mapped_column(String(1000))
-
-    # This will act like a List of ListTitle objects attached to each User.
-    # The "author" refers to the author property in the BlogPost class.
-    lists = relationship("ListTitle", back_populates="user")
-
-
-class ListTitle(db.Model):
-    __tablename__ = "list"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("users.id"))
-    name: Mapped[str] = mapped_column(String(250))
-
-    user = relationship("User", back_populates="lists")
-    # cascade as below will delete child records if parent record is deleted
-    list_items = relationship("ListItem", cascade="all, delete-orphan", back_populates="item_name")
-
-    def to_dict(self):
-        # Method 1.
-        dictionary = {}
-        # Loop through each column in the data record
-        for column in self.__table__.columns:
-            # Create a new dictionary entry;
-            # where the key is the name of the column
-            # and the value is the value of the column
-            dictionary[column.name] = getattr(self, column.name)
+def to_dict(self):
+    # Method 1.
+    dictionary = {}
+    # Loop through each column in the data record
+    for column in self.__table__.columns:
+        # Create a new dictionary entry;
+        # where the key is the name of the column
+        # and the value is the value of the column
+        dictionary[column.name] = getattr(self, column.name)
         print(dictionary)
         return dictionary
-
-
-class ListItem(db.Model):
-    __tablename__ = "items"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    list_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("list.id"))
-
-    item_name = relationship("ListTitle", back_populates="list_items")
-    task: Mapped[str] = mapped_column(String(250), nullable=False)
-    due_date: Mapped[str] = mapped_column(String(250), nullable=True)
-    assignee: Mapped[str] = mapped_column(String(50), nullable=True)
-    notes: Mapped[str] = mapped_column(String(500), nullable=True)
-    completed: Mapped[bool] = mapped_column(Boolean, nullable=True)
-
-
-with app.app_context():
-    db.create_all()
-
 
 class RegisterUserForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired()])
@@ -271,17 +210,6 @@ def logged_in_only(f):
             return abort(403)
 
     return decorated_function
-
-
-@app.route("/all")
-def get_all_lists():
-    result = db.session.execute(db.select(ListTitle).order_by(ListTitle.name))
-    all_lists = result.scalars().all()
-    list_of_lists = []
-    for list_name in all_lists:
-        list_of_lists.append(list_name.to_dict())
-    return jsonify(lists=list_of_lists)
-
 
 @app.route('/register', methods=["GET", "POST"])
 def register_user():
@@ -549,33 +477,33 @@ def delete_list_item(list_item_id, list_id):
     return redirect(url_for("show_list_details", list_id=list_id))
 
 
-@app.route("/move/<int:list_item_id>", methods=["GET", "POST"])
-@logged_in_only
-def move_list_item(list_item_id):
-    if request.method == "POST":
-        list_name = request.form.get("move_to")
-        print(list_name)
-        move_to_list = db.session.execute(db.select(ListTitle).where(ListTitle.name == list_name))
-        move_to_list = move_to_list.scalar()
-        selected_list_item = db.get_or_404(ListItem, list_item_id)
-        selected_list_item.list_id = move_to_list.id
-        db.session.commit()
-        return redirect(url_for("home"))
-    else:
-        # get list item details and current list
-        result = db.session.execute(db.select(ListItem).where
-                                    (ListItem.id == list_item_id))
-        list_item = result.scalar()
-        print(list_item.id)
-        result = db.session.execute(db.select(ListTitle).where(ListTitle.id == list_item.list_id))
-        current_list = result.scalar()
-        print(current_list.name)
-
-        # get all of the user's lists
-        result = db.session.execute(db.select(ListTitle).where(ListTitle.user_id == current_user.id))
-        lists = result.scalars().all()
-
-        return render_template("move_list_item.html", list_item=list_item, current_list=current_list, lists=lists)
+# @app.route("/move/<int:list_item_id>", methods=["GET", "POST"])
+# @logged_in_only
+# def move_list_item(list_item_id):
+#     if request.method == "POST":
+#         list_name = request.form.get("move_to")
+#         print(list_name)
+#         move_to_list = db.session.execute(db.select(ListTitle).where(ListTitle.name == list_name))
+#         move_to_list = move_to_list.scalar()
+#         selected_list_item = db.get_or_404(ListItem, list_item_id)
+#         selected_list_item.list_id = move_to_list.id
+#         db.session.commit()
+#         return redirect(url_for("home"))
+#     else:
+#         # get list item details and current list
+#         result = db.session.execute(db.select(ListItem).where
+#                                     (ListItem.id == list_item_id))
+#         list_item = result.scalar()
+#         print(list_item.id)
+#         result = db.session.execute(db.select(ListTitle).where(ListTitle.id == list_item.list_id))
+#         current_list = result.scalar()
+#         print(current_list.name)
+#
+#         # get all of the user's lists
+#         result = db.session.execute(db.select(ListTitle).where(ListTitle.user_id == current_user.id))
+#         lists = result.scalars().all()
+#
+#         return render_template("move_list_item.html", list_item=list_item, current_list=current_list, lists=lists)
 
 
 @app.route("/update_list_name/<list_id>", methods=["GET", "POST"])
@@ -672,89 +600,89 @@ def email_list(list_id):
         flash("Please enter a valid email address")
         return redirect(url_for("show_list_details", list_id=list_id))
 
-@app.route("/email_list/<int:list_id>", methods=["GET", "POST"])
-@logged_in_only
-def email_list_send_grid(list_id):
-    if request.form["recipient"]:
-        con = DBConnect()
-        con.cursor.execute(
-            f'SELECT * FROM list '
-            f'WHERE list.id = %s;',
-            (list_id,)
-        )
-        list_name = con.cursor.fetchone()
-        l_name = list_name[2]
-        con.cursor.execute(
-            f'SELECT * FROM items '
-            f'WHERE items.list_id = %s;',
-            (list_id,)
-        )
-        list_items = con.cursor.fetchall()
-        print(list_items)
-        con.cursor.close()
-        list_dict = {}
-        email_string = ""
-        for i in range(0, len(list_items)):
+# @app.route("/email_list/<int:list_id>", methods=["GET", "POST"])
+# @logged_in_only
+# def email_list_send_grid(list_id):
+#     if request.form["recipient"]:
+#         con = DBConnect()
+#         con.cursor.execute(
+#             f'SELECT * FROM list '
+#             f'WHERE list.id = %s;',
+#             (list_id,)
+#         )
+#         list_name = con.cursor.fetchone()
+#         l_name = list_name[2]
+#         con.cursor.execute(
+#             f'SELECT * FROM items '
+#             f'WHERE items.list_id = %s;',
+#             (list_id,)
+#         )
+#         list_items = con.cursor.fetchall()
+#         print(list_items)
+#         con.cursor.close()
+#         list_dict = {}
+#         email_string = ""
+#         for i in range(0, len(list_items)):
+#
+#             list_dict[i] = {"Task": list_items[i][2],
+#                             "Due Date": list_items[i][3],
+#                             "Assignee": list_items[i][4],
+#                             "Notes": list_items[i][5],
+#                             "Completed": list_items[i][6],
+#                             }
+#             if list_items[i][6] == 1:
+#                 complete = "Yes"
+#             else:
+#                 complete = "Pending"
+#
+#             email_string += (f"{i + 1}. {list_items[i][3]}\n"
+#                              f"Due Date: {list_items[i][4]}\n"
+#                              f"Assignee: {list_items[i][5]}\n"
+#                              f"Notes: {list_items[i][6]}\n"
+#                              f"Completed: {complete}\n\n")
+#
+#         print(email_string)
+#         message = Mail(
+#             from_email=MY_EMAIL,
+#             to_emails=request.form["recipient"],
+#             subject=f"{l_name}",
+#             # html_content=email_string)
+#             plain_text_content=email_string)
+#
+#         sg = SendGridAPIClient(SEND_GRID)
+#         response = sg.send(message)
+#         print(response.status_code)
+#         print(response.body)
+#         print(response.headers)
+#         flash("Email Sent")
+#         return redirect(url_for("show_list_details", list_id=list_id))
+#
+#
+#     else:
+#         flash("Please enter a valid email address")
+#         return redirect(url_for("show_list_details", list_id=list_id))
+#
 
-            list_dict[i] = {"Task": list_items[i][2],
-                            "Due Date": list_items[i][3],
-                            "Assignee": list_items[i][4],
-                            "Notes": list_items[i][5],
-                            "Completed": list_items[i][6],
-                            }
-            if list_items[i][6] == 1:
-                complete = "Yes"
-            else:
-                complete = "Pending"
-
-            email_string += (f"{i + 1}. {list_items[i][3]}\n"
-                             f"Due Date: {list_items[i][4]}\n"
-                             f"Assignee: {list_items[i][5]}\n"
-                             f"Notes: {list_items[i][6]}\n"
-                             f"Completed: {complete}\n\n")
-
-        print(email_string)
-        message = Mail(
-            from_email=MY_EMAIL,
-            to_emails=request.form["recipient"],
-            subject=f"{l_name}",
-            # html_content=email_string)
-            plain_text_content=email_string)
-
-        sg = SendGridAPIClient(SEND_GRID)
-        response = sg.send(message)
-        print(response.status_code)
-        print(response.body)
-        print(response.headers)
-        flash("Email Sent")
-        return redirect(url_for("show_list_details", list_id=list_id))
-
-
-    else:
-        flash("Please enter a valid email address")
-        return redirect(url_for("show_list_details", list_id=list_id))
-
-
-@app.route('/outstanding_tasks')
-@logged_in_only
-def outstanding_task_report():
-    print(current_user.id)
-    try:
-        result = db.session.query(ListTitle, ListItem).filter(ListTitle.user_id == current_user.id, ).filter(
-            ListTitle.id == ListItem.list_id, ).filter(ListItem.completed == '0', ).all()
-    except:
-        result = db.session.query(ListTitle, ListItem).filter(ListTitle.user_id == current_user.id, ).filter(
-            ListTitle.id == ListItem.list_id, ).filter(ListItem.completed == '0').all()
-
-    outstanding = result
-    print(outstanding)
-    for i in range(0, len(outstanding)):
-        # this query result is a tuple
-        if outstanding[i][1].due_date:
-            formatted_date = datetime.strptime(outstanding[i][1].due_date, '%Y-%m-%d')
-            formatted_date = formatted_date.strftime('%b %-d, %Y')
-            outstanding[i][1].due_date = formatted_date
-    return render_template("outstanding_tasks.html", outstanding=outstanding)
+# @app.route('/outstanding_tasks')
+# @logged_in_only
+# def outstanding_task_report():
+#     print(current_user.id)
+#     try:
+#         result = db.session.query(ListTitle, ListItem).filter(ListTitle.user_id == current_user.id, ).filter(
+#             ListTitle.id == ListItem.list_id, ).filter(ListItem.completed == '0', ).all()
+#     except:
+#         result = db.session.query(ListTitle, ListItem).filter(ListTitle.user_id == current_user.id, ).filter(
+#             ListTitle.id == ListItem.list_id, ).filter(ListItem.completed == '0').all()
+#
+#     outstanding = result
+#     print(outstanding)
+#     for i in range(0, len(outstanding)):
+#         # this query result is a tuple
+#         if outstanding[i][1].due_date:
+#             formatted_date = datetime.strptime(outstanding[i][1].due_date, '%Y-%m-%d')
+#             formatted_date = formatted_date.strftime('%b %-d, %Y')
+#             outstanding[i][1].due_date = formatted_date
+#     return render_template("outstanding_tasks.html", outstanding=outstanding)
 
 
 @app.route("/clone/<list_name>/<list_id>", methods=["GET", "POST"])
