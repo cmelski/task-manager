@@ -127,7 +127,7 @@ def create_db():
         print(f"Duplicate DB: {e}")
 
 
-# create_db()
+create_db()
 
 def create_table():
     conn = psycopg2.connect(database=os.environ.get('DB_NAME'), user=os.environ.get('DB_USER'),
@@ -170,7 +170,7 @@ def create_table():
     conn.close()
 
 
-# create_table()
+create_table()
 
 def to_dict(self):
     # Method 1.
