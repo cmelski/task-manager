@@ -2,6 +2,7 @@ from __future__ import annotations
 from datetime import date, datetime
 
 import psycopg2
+import psycopg
 from flask import Flask, abort, render_template, redirect, url_for, flash, request, jsonify
 from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
@@ -20,7 +21,7 @@ from email.message import EmailMessage
 
 MY_EMAIL = os.environ.get('MY_EMAIL')
 MY_PASSWORD = os.environ.get('MY_PASSWORD')
-#SEND_GRID = os.environ.get('SENDGRID_API_KEY')
+# SEND_GRID = os.environ.get('SENDGRID_API_KEY')
 import csv
 import os, sys, shutil, os.path
 from flask import send_file
@@ -50,13 +51,33 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 
+# class DBConnect:
+#     def __init__(self):
+#         self.connection = psycopg2.connect(database=os.environ.get('DB_NAME'), user=os.environ.get('DB_USER'),
+#                                           password=os.environ.get('DB_PASSWORD'),
+#                                           host=os.environ.get('DB_HOST'), port=os.environ.get('DB_PORT'))
+#
+#         self.cursor = self.connection.cursor()
+
 class DBConnect:
     def __init__(self):
-        self.connection = psycopg2.connect(database=os.environ.get('DB_NAME'), user=os.environ.get('DB_USER'),
-                                           password=os.environ.get('DB_PASSWORD'),
-                                           host=os.environ.get('DB_HOST'), port=os.environ.get('DB_PORT'))
-
+        self.connection = psycopg.connect(
+            dbname=os.environ.get('DB_NAME'),
+            user=os.environ.get('DB_USER'),
+            password=os.environ.get('DB_PASSWORD'),
+            host=os.environ.get('DB_HOST'),
+            port=os.environ.get('DB_PORT')
+        )
         self.cursor = self.connection.cursor()
+
+    def commit(self):
+        """Commit current transaction"""
+        self.connection.commit()
+
+    def close(self):
+        """Close cursor and connection"""
+        self.cursor.close()
+        self.connection.close()
 
 
 # Create a user_loader callback
@@ -106,70 +127,145 @@ class User:
         return str(self.id)
 
 
+# def create_db():
+#     try:
+#         conn = psycopg2.connect(
+#             host=os.environ.get('DB_HOST'),
+#             database=os.environ.get('DB_NAME_DEFAULT'),  # Connect to the default 'postgres' database first
+#             user=os.environ.get('DB_USER'),
+#             password=os.environ.get('DB_PASSWORD'),
+#             port=os.environ.get('DB_PORT')
+#         )
+#         conn.autocommit = True  # Set autocommit to True
+#         cur = conn.cursor()
+#
+#         cur.execute(f"CREATE DATABASE {os.environ.get('DB_NAME')};")
+#         print("Database created successfully!")
+#
+#         cur.close()
+#         conn.close()
+#     except psycopg.Error as e:
+#         print(f"Duplicate DB: {e}")
+
+import os
+import psycopg
+
 def create_db():
     try:
-        conn = psycopg2.connect(
+        # Connect to the default database (e.g. 'postgres')
+        with psycopg.connect(
             host=os.environ.get('DB_HOST'),
-            database=os.environ.get('DB_NAME_DEFAULT'),  # Connect to the default 'postgres' database first
+            dbname=os.environ.get('DB_NAME_DEFAULT'),
             user=os.environ.get('DB_USER'),
             password=os.environ.get('DB_PASSWORD'),
             port=os.environ.get('DB_PORT')
-        )
-        conn.autocommit = True  # Set autocommit to True
-        cur = conn.cursor()
+        ) as conn:
+            # Enable autocommit mode
+            conn.autocommit = True
 
-        cur.execute(f"CREATE DATABASE {os.environ.get('DB_NAME')};")
-        print("Database created successfully!")
+            with conn.cursor() as cur:
+                db_name = os.environ.get('DB_NAME')
+                cur.execute(f"CREATE DATABASE {db_name};")
+                print("Database created successfully!")
 
-        cur.close()
-        conn.close()
-    except psycopg2.Error as e:
+    except psycopg.Error as e:
         print(f"Duplicate DB: {e}")
+
 
 
 create_db()
 
 
+# def create_table():
+#     conn = psycopg.connect(database=os.environ.get('DB_NAME'), user=os.environ.get('DB_USER'),
+#                            password=os.environ.get('DB_PASSWORD'),
+#                            host=os.environ.get('DB_HOST'), port=os.environ.get('DB_PORT'))
+#     # print('connected')
+#     cur = conn.cursor()
+#     conn.autocommit = True
+#     cur.execute("""
+#         CREATE TABLE IF NOT EXISTS users (
+#             id SERIAL PRIMARY KEY,
+#             email VARCHAR(255) NOT NULL,
+#             password VARCHAR(100) NOT NULL,
+#             name VARCHAR(50) NOT NULL
+#         )
+#         """)
+#     cur.execute("""
+#     CREATE TABLE IF NOT EXISTS list (
+#         id SERIAL PRIMARY KEY,
+#         user_id INTEGER,
+#         name VARCHAR(100) NOT NULL,
+#         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+#     );
+#     """)
+#
+#     cur.execute("""
+#         CREATE TABLE IF NOT EXISTS items (
+#             id SERIAL PRIMARY KEY,
+#             list_id INTEGER,
+#             task VARCHAR(100) NOT NULL,
+#             due_date VARCHAR(20),
+#             assignee VARCHAR(50),
+#             notes VARCHAR(250),
+#             completed BOOLEAN,
+#             FOREIGN KEY (list_id) REFERENCES list(id) ON DELETE CASCADE
+#         );
+#         """)
+#
+#     cur.close()
+#     conn.close()
+
+import os
+import psycopg
+
 def create_table():
-    conn = psycopg2.connect(database=os.environ.get('DB_NAME'), user=os.environ.get('DB_USER'),
-                            password=os.environ.get('DB_PASSWORD'),
-                            host=os.environ.get('DB_HOST'), port=os.environ.get('DB_PORT'))
-    # print('connected')
-    cur = conn.cursor()
-    conn.autocommit = True
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-            email VARCHAR(255) NOT NULL,
-            password VARCHAR(100) NOT NULL,
-            name VARCHAR(50) NOT NULL
-        )
-        """)
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS list (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER,
-        name VARCHAR(100) NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    );
-    """)
+    # Connect to your target database
+    with psycopg.connect(
+        dbname=os.environ.get('DB_NAME'),
+        user=os.environ.get('DB_USER'),
+        password=os.environ.get('DB_PASSWORD'),
+        host=os.environ.get('DB_HOST'),
+        port=os.environ.get('DB_PORT')
+    ) as conn:
+        conn.autocommit = True  # Apply changes immediately (no explicit commit needed)
 
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS items (
-            id SERIAL PRIMARY KEY,
-            list_id INTEGER,
-            task VARCHAR(100) NOT NULL,
-            due_date VARCHAR(20),
-            assignee VARCHAR(50),
-            notes VARCHAR(250),
-            completed BOOLEAN,
-            FOREIGN KEY (list_id) REFERENCES list(id) ON DELETE CASCADE
-        );
-        """)
+        with conn.cursor() as cur:
+            # Users table
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id SERIAL PRIMARY KEY,
+                    email VARCHAR(255) NOT NULL,
+                    password VARCHAR(100) NOT NULL,
+                    name VARCHAR(50) NOT NULL
+                );
+            """)
 
-    cur.close()
-    conn.close()
+            # List table
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS list (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER,
+                    name VARCHAR(100) NOT NULL,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                );
+            """)
 
+            # Items table
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS items (
+                    id SERIAL PRIMARY KEY,
+                    list_id INTEGER,
+                    task VARCHAR(100) NOT NULL,
+                    due_date VARCHAR(20),
+                    assignee VARCHAR(50),
+                    notes VARCHAR(250),
+                    completed BOOLEAN,
+                    FOREIGN KEY (list_id) REFERENCES list(id) ON DELETE CASCADE
+                );
+            """)
+
+        print("✅ Tables created successfully!")
 
 create_table()
 
