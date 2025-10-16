@@ -1,7 +1,7 @@
 from __future__ import annotations
 from datetime import date, datetime
 
-import psycopg2
+#import psycopg2
 import psycopg
 from flask import Flask, abort, render_template, redirect, url_for, flash, request, jsonify
 from flask_bootstrap import Bootstrap5
