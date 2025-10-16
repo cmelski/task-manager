@@ -20,7 +20,7 @@ from email.message import EmailMessage
 
 MY_EMAIL = os.environ.get('MY_EMAIL')
 MY_PASSWORD = os.environ.get('MY_PASSWORD')
-SEND_GRID = os.environ.get('SENDGRID_API_KEY')
+#SEND_GRID = os.environ.get('SENDGRID_API_KEY')
 import csv
 import os, sys, shutil, os.path
 from flask import send_file
