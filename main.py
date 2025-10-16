@@ -129,6 +129,7 @@ def create_db():
 
 create_db()
 
+
 def create_table():
     conn = psycopg2.connect(database=os.environ.get('DB_NAME'), user=os.environ.get('DB_USER'),
                             password=os.environ.get('DB_PASSWORD'),
@@ -172,6 +173,7 @@ def create_table():
 
 create_table()
 
+
 def to_dict(self):
     # Method 1.
     dictionary = {}
@@ -183,6 +185,7 @@ def to_dict(self):
         dictionary[column.name] = getattr(self, column.name)
         print(dictionary)
         return dictionary
+
 
 class RegisterUserForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired()])
@@ -210,6 +213,7 @@ def logged_in_only(f):
             return abort(403)
 
     return decorated_function
+
 
 @app.route('/register', methods=["GET", "POST"])
 def register_user():
@@ -380,7 +384,7 @@ def update_all_list_items(list_id):
         if request.form.get("ids"):
             ids = request.form.get("ids")
             if ids[1].isdigit() > 0:
-                con = DBConnect()
+
                 print(ids)
                 print("test")
                 for char in ids:
@@ -393,7 +397,7 @@ def update_all_list_items(list_id):
                 print(id_list)
 
                 for i in range(0, len(id_list)):
-
+                    con = DBConnect()
                     con.cursor.execute(
                         f'SELECT * FROM items '
                         f'WHERE items.id = {id_list[i]};')
@@ -604,6 +608,7 @@ def email_list(list_id):
         flash("Please enter a valid email address")
         return redirect(url_for("show_list_details", list_id=list_id))
 
+
 # @app.route("/email_list/<int:list_id>", methods=["GET", "POST"])
 # @logged_in_only
 # def email_list_send_grid(list_id):
@@ -733,7 +738,8 @@ def clone_list(list_name, list_id):
                    f" VALUES('{new_list_id}','{task_name}', '{due_date}', '{assignee}', '{notes}', '{completed}');"
         con.cursor.execute(new_item)
         con.connection.commit()
-        con.cursor.close()
+
+    con.cursor.close()
 
     return redirect(url_for("show_list_details", list_id=new_list_id))
 
