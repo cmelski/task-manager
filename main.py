@@ -118,7 +118,7 @@ def create_db():
         conn.autocommit = True  # Set autocommit to True
         cur = conn.cursor()
 
-        cur.execute("CREATE DATABASE todo;")
+        cur.execute(f"CREATE DATABASE {os.environ.get('DB_NAME')};")
         print("Database created successfully!")
 
         cur.close()
@@ -260,6 +260,7 @@ def home():
         con.cursor.execute(f"SELECT * from list where list.user_id = '{current_user.id}';")
         lists = con.cursor.fetchall()
         print(lists)
+        con.cursor.close()
         return render_template("index.html", all_lists=lists)
     else:
         lists = []
@@ -363,6 +364,7 @@ def update_list_item(list_item_id, list_id):
         else:
             item.completed = 0
     item.list_id = list_id
+    con.cursor.close()
     # print(item.task,item.due_date,item.id,item.list_id)
     return redirect(url_for("show_list_details", list_id=list_id))
 
@@ -378,6 +380,7 @@ def update_all_list_items(list_id):
         if request.form.get("ids"):
             ids = request.form.get("ids")
             if ids[1].isdigit() > 0:
+                con = DBConnect()
                 print(ids)
                 print("test")
                 for char in ids:
@@ -390,7 +393,7 @@ def update_all_list_items(list_id):
                 print(id_list)
 
                 for i in range(0, len(id_list)):
-                    con = DBConnect()
+
                     con.cursor.execute(
                         f'SELECT * FROM items '
                         f'WHERE items.id = {id_list[i]};')
@@ -457,6 +460,7 @@ def add_list_item(list_id):
                    f" VALUES('{list_id}','{task_name}', '{due_date}', '{assignee}', '{notes}', '{completed}');"
         con.cursor.execute(new_item)
         con.connection.commit()
+        con.cursor.close()
         return redirect(url_for("show_list_details", list_id=list_id))
 
 
@@ -743,6 +747,7 @@ def login():
         # Find user by email entered.
         con.cursor.execute(f"SELECT * from users where users.email = '{login_form.email.data}';")
         result = con.cursor.fetchall()
+        con.cursor.close()
 
         if not result:
             flash("Invalid email")
