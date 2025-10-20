@@ -2,6 +2,7 @@ import time
 
 from playwright.sync_api import expect
 import utils.utilities as util
+from conftest import logger
 
 
 class ListPage:
@@ -44,6 +45,7 @@ class ListPage:
     def validate_new_item(self):
         rows = self.page.locator('table tbody tr')
         last_index = rows.count() - 2 #don't want the add new task row
+        logger.info(f'last index is {last_index}')
         last_item = []
         item_name = self.page.locator(f'input[name*="task_{str(last_index)}"]').input_value()
         assignee = self.page.locator(f'input[name*="assign_{str(last_index)}"]').input_value()
