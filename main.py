@@ -422,6 +422,7 @@ def show_list_details(list_id):
         f'WHERE items.list_id = {list_id};'
     )
     items = con.cursor.fetchall()
+    print(items)
 
     con.cursor.execute(
         f'SELECT * FROM list '
@@ -542,8 +543,9 @@ def add_list_item(list_id):
     if request.method == "POST":
         task_name = request.form["new_task"]
         due_date = request.form["new_due_date"]
+        print(due_date)
         assignee = request.form["new_assignee"]
-        print(assignee)
+
         notes = request.form["new_notes"]
         if not notes:
             notes = ""

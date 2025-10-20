@@ -43,26 +43,43 @@
   .tooltip:hover .tooltiptext {
     visibility: visible;
   }
- .calendar-wrapper {
-  position: relative;
-  display: inline-block;
-  width: 150px; /* optional, sets input width */
-  vertical-align: top; /* helps prevent row expansion */
+
+.calendar-days td.selected {
+background-color: #2563eb;
+color: white;
+border-radius: 3px;
 }
+
+
+.calendar-days td.today {
+border: 1px solid #2563eb;
+border-radius: 3px;
+}
+
+
+.calendar-days td {
+width: 24px;
+height: 24px;
+text-align: center;
+vertical-align: middle;
+cursor: pointer;
+}
+
 
 .calendar-popup {
-  position: absolute;
-  top: 36px;   /* just below the input */
-  left: 0;
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  z-index: 9999; /* ensures it floats above everything */
-  display: none; /* hidden by default */
+display: none;
+position: absolute;
+background: white;
+border: 1px solid #ccc;
+padding: 4px;
+z-index: 10;
 }
 
-    </style>
+
+.calendar-wrapper {
+position: relative;
+}
+</style>
 </head>
 <body class="is-preload">
 <!-- Wrapper -->
@@ -196,32 +213,35 @@
 
                         <td><input id={{requested_list[i].id}} type="text" style="font-weight:bold;color: #818385;"
                                    name="task_{{n}}" value="{{requested_list[i][2]}}"/></td>
-                        <td><div class="calendar-wrapper">
-                            <input type="text" class="date-input" name="due_{{n}}" value="{{requested_list[i][3]}}" readonly
-                                   data-testid="date-input"/>
-                            <div class="calendar-popup" data-testid="calendar-popup">
-                                <div class="calendar-header">
-                                    <button class="prev-month" data-testid="prev-month">◀</button>
-                                    <span class="month-label" data-testid="month-label">Month Year</span>
-                                    <button class="next-month" data-testid="next-month">▶</button>
+                        <td>
+                            <div class="calendar-wrapper">
+                                <input type="text" class="date-input" name="due_{{n}}" value="{{requested_list[i][3]}}"
+                                       readonly
+                                       data-testid="date-input"/>
+                                <div class="calendar-popup" data-testid="calendar-popup">
+                                    <div class="calendar-header">
+                                        <button class="prev-month" data-testid="prev-month">◀</button>
+                                        <span class="month-label" data-testid="month-label">Month Year</span>
+                                        <button class="next-month" data-testid="next-month">▶</button>
+                                    </div>
+                                    <table>
+                                        <thead>
+                                        <tr>
+                                            <th>Su</th>
+                                            <th>Mo</th>
+                                            <th>Tu</th>
+                                            <th>We</th>
+                                            <th>Th</th>
+                                            <th>Fr</th>
+                                            <th>Sa</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody class="calendar-days" data-testid="calendar-days"></tbody>
+                                    </table>
                                 </div>
-                                <table>
-                                    <thead>
-                                    <tr>
-                                        <th>Su</th>
-                                        <th>Mo</th>
-                                        <th>Tu</th>
-                                        <th>We</th>
-                                        <th>Th</th>
-                                        <th>Fr</th>
-                                        <th>Sa</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody class="calendar-days" data-testid="calendar-days"></tbody>
-                                </table>
                             </div>
-                        </div></td>
-                           <!--  <td><input type="date" name="due_{{n}}" value="{{requested_list[i][3]}}"/></td> -->
+                        </td>
+                        <!--  <td><input type="date" name="due_{{n}}" value="{{requested_list[i][3]}}"/></td> -->
                         <td><input type="text" name="assign_{{n}}" list="assignPerson"
                                    value="{{requested_list[i][4]}}"/>
                             <datalist id="assignPerson">
@@ -271,32 +291,35 @@
                     <form id="add_item_1" method="POST" action="{{ url_for('add_list_item',list_id = list_id)}}">
                         <td><input type="text" id="add" style="font-weight:bold;color: #818385;" name="new_task"
                                    placeholder="<Add New Task>"/></td>
-                        <td><div class="calendar-wrapper">
-                            <input type="text" class="date-input" name="new_due_date" placeholder="Select date" readonly
-                                   data-testid="date-input"/>
-                            <div class="calendar-popup" data-testid="calendar-popup">
-                                <div class="calendar-header">
-                                    <button class="prev-month" data-testid="prev-month">◀</button>
-                                    <span class="month-label" data-testid="month-label">Month Year</span>
-                                    <button class="next-month" data-testid="next-month">▶</button>
+                        <td>
+                            <div class="calendar-wrapper">
+                                <input type="text" class="date-input" name="new_due_date" placeholder="Select date"
+                                       readonly
+                                       data-testid="date-input"/>
+                                <div class="calendar-popup" data-testid="calendar-popup">
+                                    <div class="calendar-header">
+                                        <button class="prev-month" data-testid="prev-month">◀</button>
+                                        <span class="month-label" data-testid="month-label">Month Year</span>
+                                        <button class="next-month" data-testid="next-month">▶</button>
+                                    </div>
+                                    <table>
+                                        <thead>
+                                        <tr>
+                                            <th>Su</th>
+                                            <th>Mo</th>
+                                            <th>Tu</th>
+                                            <th>We</th>
+                                            <th>Th</th>
+                                            <th>Fr</th>
+                                            <th>Sa</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody class="calendar-days" data-testid="calendar-days"></tbody>
+                                    </table>
                                 </div>
-                                <table>
-                                    <thead>
-                                    <tr>
-                                        <th>Su</th>
-                                        <th>Mo</th>
-                                        <th>Tu</th>
-                                        <th>We</th>
-                                        <th>Th</th>
-                                        <th>Fr</th>
-                                        <th>Sa</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody class="calendar-days" data-testid="calendar-days"></tbody>
-                                </table>
                             </div>
-                        </div></td>
-                            <!--  <td><input type="date" name="new_due_date"/></td>-->
+                        </td>
+                        <!--  <td><input type="date" name="new_due_date"/></td>-->
                         <td><input type="text" name="new_assignee" list="assignName"/>
                             <datalist id="assignName">
                                 <option value="Chris">Chris</option>
@@ -331,32 +354,35 @@
                     <form id="add_item_2" method="POST" action="{{ url_for('add_list_item',list_id = list_id)}}">
                         <td><input type="text" id="add" style="font-weight:bold;color: #818385;" name="new_task"
                                    placeholder="<Add New Task>"/></td>
-                        <td><div class="calendar-wrapper">
-                            <input type="text" class="date-input" name="new_due_date" placeholder="Select date" readonly
-                                   data-testid="date-input"/>
-                            <div class="calendar-popup" data-testid="calendar-popup">
-                                <div class="calendar-header">
-                                    <button class="prev-month" data-testid="prev-month">◀</button>
-                                    <span class="month-label" data-testid="month-label">Month Year</span>
-                                    <button class="next-month" data-testid="next-month">▶</button>
+                        <td>
+                            <div class="calendar-wrapper">
+                                <input type="text" class="date-input" name="new_due_date" placeholder="Select date"
+                                       readonly
+                                       data-testid="date-input"/>
+                                <div class="calendar-popup" data-testid="calendar-popup">
+                                    <div class="calendar-header">
+                                        <button class="prev-month" data-testid="prev-month">◀</button>
+                                        <span class="month-label" data-testid="month-label">Month Year</span>
+                                        <button class="next-month" data-testid="next-month">▶</button>
+                                    </div>
+                                    <table>
+                                        <thead>
+                                        <tr>
+                                            <th>Su</th>
+                                            <th>Mo</th>
+                                            <th>Tu</th>
+                                            <th>We</th>
+                                            <th>Th</th>
+                                            <th>Fr</th>
+                                            <th>Sa</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody class="calendar-days" data-testid="calendar-days"></tbody>
+                                    </table>
                                 </div>
-                                <table>
-                                    <thead>
-                                    <tr>
-                                        <th>Su</th>
-                                        <th>Mo</th>
-                                        <th>Tu</th>
-                                        <th>We</th>
-                                        <th>Th</th>
-                                        <th>Fr</th>
-                                        <th>Sa</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody class="calendar-days" data-testid="calendar-days"></tbody>
-                                </table>
                             </div>
-                        </div></td>
-                            <!-- <td><input type="date" name="new_due_date"/></td>  -->
+                        </td>
+                        <!-- <td><input type="date" name="new_due_date"/></td>  -->
                         <td><input type="text" name="new_assignee" list="assignName"/>
                             <datalist id="assignName">
                                 <option value="Chris">Chris</option>
@@ -404,75 +430,109 @@
 </div>
 
 <!-- Scripts -->
-
 <script>
 document.querySelectorAll('.calendar-wrapper').forEach(wrapper => {
-  const input = wrapper.querySelector('.date-input');
-  const popup = wrapper.querySelector('.calendar-popup');
-  const daysEl = wrapper.querySelector('.calendar-days');
-  const monthLabel = wrapper.querySelector('.month-label');
-  const prevBtn = wrapper.querySelector('.prev-month');
-  const nextBtn = wrapper.querySelector('.next-month');
+    const input = wrapper.querySelector('.date-input');
+    const popup = wrapper.querySelector('.calendar-popup');
+    const daysEl = wrapper.querySelector('.calendar-days');
+    const monthLabel = wrapper.querySelector('.month-label');
+    const prevBtn = wrapper.querySelector('.prev-month');
+    const nextBtn = wrapper.querySelector('.next-month');
 
-  let current = new Date();
-  let selected = null;
+    // Each wrapper gets its own state
+    let current = new Date();
+    let selected = null;
 
-  function pad(n){return n<10?'0'+n:n;}
-  function fmt(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;}
+    function pad(n){ return n<10?'0'+n:n; }
+    function fmt(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
 
-  function render(){
-    const year=current.getFullYear(),month=current.getMonth();
-    monthLabel.textContent=current.toLocaleString('default',{month:'short'})+' '+year;
-    daysEl.innerHTML='';
-    const firstDay=new Date(year,month,1).getDay();
-    const daysInMonth=new Date(year,month+1,0).getDate();
-    let row=document.createElement('tr');
-    for(let i=0;i<firstDay;i++)row.appendChild(document.createElement('td'));
-    for(let d=1;d<=daysInMonth;d++){
-      const cell=document.createElement('td');
-      const date=new Date(year,month,d);
-      const iso=fmt(date);
-      cell.textContent=d;
-      cell.setAttribute('data-testid',`day-${iso}`);
-      cell.addEventListener('click',()=>{
-        selected=date;
-        input.value=fmt(selected);
-        popup.style.display='none';
-        render();
-      });
-      if(selected && fmt(selected)===iso) cell.classList.add('selected');
-      row.appendChild(cell);
-      if((firstDay+d)%7===0||d===daysInMonth){
-        daysEl.appendChild(row);
-        row=document.createElement('tr');
-      }
+    function render(){
+        const year = current.getFullYear(), month = current.getMonth();
+        monthLabel.textContent = current.toLocaleString('default',{month:'short'})+' '+year;
+        daysEl.innerHTML = '';
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month+1, 0).getDate();
+        let row = document.createElement('tr');
+
+        const selectedIso = selected ? fmt(selected) : null;
+        const today = new Date();
+        const todayIso = fmt(today);
+
+        for(let i=0;i<firstDay;i++) row.appendChild(document.createElement('td'));
+        for(let d=1; d<=daysInMonth; d++){
+            const cell = document.createElement('td');
+            const date = new Date(year, month, d);
+            const iso = fmt(date);
+            cell.textContent = d;
+            cell.setAttribute('data-testid', `day-${iso}`);
+
+            if(selectedIso === iso) cell.classList.add('selected');
+            if(todayIso === iso) cell.classList.add('today');
+
+            cell.addEventListener('click', ()=>{
+                selected = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                input.value = fmt(selected);
+                popup.style.display = 'none';
+                render();
+            });
+
+            row.appendChild(cell);
+            if((firstDay+d)%7===0 || d===daysInMonth){
+                daysEl.appendChild(row);
+                row = document.createElement('tr');
+            }
+        }
     }
-  }
 
-  input.addEventListener('click',()=>{
-    popup.style.display=popup.style.display==='block'?'none':'block';
+    // Initialize selected from input value (preserve your table data)
+   if(input.value){
+    // preserve existing value
+    const val = new Date(input.value);
+    selected = new Date(val.getFullYear(), val.getMonth(), val.getDate());
+    current = new Date(val.getFullYear(), val.getMonth(), 1);
+} else {
+    // no value in input => placeholder
+    selected = null;         // no selected date yet
+    current = new Date();    // calendar still opens to current month
+    input.value = '';        // leave input empty
+    input.placeholder = 'Select Date';  // show placeholder text
+}
+
+
+    // Hide popup initially
+    popup.style.display = 'none';
     render();
-  });
 
-  prevBtn.addEventListener('click',()=>{
-    current=new Date(current.getFullYear(),current.getMonth()-1,1);
-    render();
-  });
+    // Toggle popup on click
+    input.addEventListener('click', e => {
+        e.stopPropagation(); // Prevent the document click from immediately closing it
+        // Close other open popups
+        document.querySelectorAll('.calendar-popup').forEach(p => {
+            if(p !== popup) p.style.display = 'none';
+        });
+        popup.style.display = popup.style.display==='block'?'none':'block';
+        render();
+    });
 
-  nextBtn.addEventListener('click',()=>{
-    current=new Date(current.getFullYear(),current.getMonth()+1,1);
-    render();
-  });
+    // Navigation buttons
+    prevBtn.addEventListener('click', e=>{
+        e.stopPropagation();
+        current = new Date(current.getFullYear(), current.getMonth()-1,1);
+        render();
+    });
+    nextBtn.addEventListener('click', e=>{
+        e.stopPropagation();
+        current = new Date(current.getFullYear(), current.getMonth()+1,1);
+        render();
+    });
 
-  document.addEventListener('click',e=>{
-    if(!wrapper.contains(e.target)) popup.style.display='none';
-  });
-
-  render();
+    // Close popup if clicking outside
+    document.addEventListener('click', e=>{
+        if(!wrapper.contains(e.target)) popup.style.display = 'none';
+    });
 });
 </script>
-
-
 
 
 <script src="../static/assets/js/jquery.min.js"></script>

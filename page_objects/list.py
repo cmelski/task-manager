@@ -43,8 +43,8 @@ class ListPage:
         return list_item
 
     def validate_new_item(self):
-        rows = self.page.locator('table tbody tr')
-        last_index = rows.count() - 2 #don't want the add new task row
+        rows = self.page.locator('table.task-table > tbody > tr')
+        last_index = rows.count() - 2 #don't want the add new task row and index starts from 0
         logger.info(f'last index is {last_index}')
         last_item = []
         item_name = self.page.locator(f'input[name*="task_{str(last_index)}"]').input_value()
