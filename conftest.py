@@ -1,8 +1,19 @@
 import os
+import shutil
 
 import pytest
 from dotenv import load_dotenv
+
 load_dotenv()
+
+import logging
+
+# Configure once (e.g., in conftest.py)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 
 # define test run parameters
@@ -22,6 +33,26 @@ def user_credentials(request):
 
 
 @pytest.fixture
+def clean_auth_state_before_login():
+    file_path = "auth_state.json"
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        logger.info("Deleted auth_state.json before login test.")
+
+
+@pytest.fixture
+def set_auth_state():
+    source = 'utils/auth_state.json'
+    if os.path.exists(source):
+        destination = "auth_state.json"
+        if os.path.exists(destination):
+            pass
+        else:
+        # Move the file
+            shutil.copy(source, destination)
+
+
+@pytest.fixture
 def browser_instance(playwright, request):
     browser_name = request.config.getoption('browser_name')
     url_start = request.config.getoption('url_start')
@@ -36,7 +67,8 @@ def browser_instance(playwright, request):
     else:
         context = browser.new_context()
 
-    #context = browser.new_context()
+    # context = browser.new_context()
+
     page = context.new_page()
     page.goto(url_start)
     yield page

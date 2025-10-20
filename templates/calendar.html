@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Calendar Widget</title>
+  <style>
+    body {font-family: sans-serif; font-size: 14px; margin: 2em;}
+    .calendar-wrapper {position: relative; display: inline-block;}
+    .calendar-popup {
+      display: none;
+      position: absolute;
+      top: 36px;
+      left: 0;
+      background: #fff;
+      border: 1px solid #ccc;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      padding: 8px;
+      z-index: 10;
+    }
+    table {border-collapse: collapse; width: 100%; text-align: center;}
+    th, td {width: 28px; height: 28px; padding: 2px; cursor: pointer;}
+    th {background: #f3f4f6;}
+    td:hover {background: #e0e7ff;}
+    td.selected {background: #2563eb; color: #fff; border-radius: 4px;}
+    .calendar-header {display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;}
+    .calendar-header button {background: none; border: none; cursor: pointer; font-size: 14px;}
+  </style>
+</head>
+<body>
+  <div class="calendar-wrapper">
+    <input type="text" id="dateInput" placeholder="Select date" readonly data-testid="date-input" />
+    <div class="calendar-popup" id="calendarPopup" data-testid="calendar-popup">
+      <div class="calendar-header">
+        <button id="prevMonthBtn" data-testid="prev-month">◀</button>
+        <span id="monthLabel" data-testid="month-label">Month Year</span>
+        <button id="nextMonthBtn" data-testid="next-month">▶</button>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Su</th><th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th><th>Sa</th></tr>
+        </thead>
+        <tbody id="calendarDays" data-testid="calendar-days"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const input = document.getElementById('dateInput');
+      const popup = document.getElementById('calendarPopup');
+      const daysEl = document.getElementById('calendarDays');
+      const monthLabel = document.getElementById('monthLabel');
+      const prevBtn = document.getElementById('prevMonthBtn');
+      const nextBtn = document.getElementById('nextMonthBtn');
+      let current = new Date();
+      let selected = null;
+
+      function pad(n){return n < 10 ? '0'+n : n;}
+      function fmt(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;}
+
+      function renderCalendar(){
+        const year = current.getFullYear();
+        const month = current.getMonth();
+        monthLabel.textContent = current.toLocaleString('default',{month:'short'}) + ' ' + year;
+        daysEl.innerHTML = '';
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month+1, 0).getDate();
+        let row = document.createElement('tr');
+
+        for(let i=0;i<firstDay;i++) row.appendChild(document.createElement('td'));
+        for(let d=1; d<=daysInMonth; d++){
+          const cell = document.createElement('td');
+          const date = new Date(year, month, d);
+          const iso = fmt(date);
+          cell.textContent = d;
+          cell.setAttribute('data-testid', `day-${iso}`);
+          cell.addEventListener('click', ()=>selectDate(date));
+          if(selected && fmt(selected) === iso) cell.classList.add('selected');
+          row.appendChild(cell);
+          if((firstDay + d) % 7 === 0 || d === daysInMonth){
+            daysEl.appendChild(row);
+            row = document.createElement('tr');
+          }
+        }
+      }
+
+      function selectDate(date){
+        selected = date;
+        input.value = fmt(selected);
+        popup.style.display = 'none';
+        renderCalendar();
+      }
+
+      input.addEventListener('click', ()=>{
+        popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
+        renderCalendar();
+      });
+
+      prevBtn.addEventListener('click', ()=>{
+        current = new Date(current.getFullYear(), current.getMonth()-1, 1);
+        renderCalendar();
+      });
+
+      nextBtn.addEventListener('click', ()=>{
+        current = new Date(current.getFullYear(), current.getMonth()+1, 1);
+        renderCalendar();
+      });
+
+      document.addEventListener('click', (e)=>{
+        if(!popup.contains(e.target) && e.target !== input) popup.style.display = 'none';
+      });
+
+      window.__calendarWidget = {
+        open(){ input.click(); },
+        selectISO(iso){ const p=iso.split('-').map(Number); selectDate(new Date(p[0],p[1]-1,p[2])); },
+        getSelectedISO(){ return selected ? fmt(selected) : null; }
+      };
+
+      renderCalendar();
+    })();
+  </script>
+</body>
+</html>

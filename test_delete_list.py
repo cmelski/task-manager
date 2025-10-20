@@ -9,7 +9,7 @@ from page_objects.login import LoginPage
 import time
 
 # define the path to the feature file
-scenarios('features/list.feature')
+#scenarios('features/list.feature')
 
 with open('data/credentials.json') as f:
     test_data = json.load(f)
@@ -27,18 +27,18 @@ def shared_data():
 #terminal pytest -m delete_list
 @pytest.mark.delete_list
 @scenario('features/list.feature', 'Verify successful deletion of a list')
-def test_delete_list():
+def test_delete_list(set_auth_state):
     pass
 
 
 @given('The User is on dashboard page')
 def user_on_dashboard_page(browser_instance, shared_data):
-    state = "auth_state.json" if os.path.exists("auth_state.json") else None
-    if state:
-        dashboard_page = DashboardPage(browser_instance)
-    else:
-        login_page = LoginPage(browser_instance)
-        dashboard_page = login_page.login(user_credentials_list[0]['user_email'], user_credentials_list[0]['password'])
+    #state = "auth_state.json" if os.path.exists("auth_state.json") else None
+    #if state:
+    dashboard_page = DashboardPage(browser_instance)
+    #else:
+        #login_page = LoginPage(browser_instance)
+        #dashboard_page = login_page.login(user_credentials_list[0]['user_email'], user_credentials_list[0]['password'])
 
     shared_data['dashboard_page'] = dashboard_page
     time.sleep(2)
@@ -67,5 +67,5 @@ def validate_list_deletion(shared_data):
     dashboard_page = shared_data['dashboard_page']
     lists = dashboard_page.validate_list_deletion()
     assert shared_data['list_name_to_delete'] not in lists
-    assert  len(lists) == shared_data['list_index_to_delete']
+    assert len(lists) == shared_data['list_index_to_delete']
 

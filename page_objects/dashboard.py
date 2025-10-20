@@ -12,8 +12,10 @@ class DashboardPage:
     def verify_dashboard(self):
         self.page.locator('.tooltip').first.hover()
         # Get the tooltip text
+        user = self.page.locator('.tooltip .tooltiptext').nth(0).inner_text()
         expect(self.page.locator('.tooltip .tooltiptext').nth(0)).not_to_be_empty()
         self.page.context.storage_state(path="auth_state.json")
+        return user
 
     def add_new_list(self):
         self.page.locator('a[href="/add_list"]').click()

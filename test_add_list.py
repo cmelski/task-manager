@@ -8,13 +8,13 @@ from page_objects.login import LoginPage
 import time
 
 # define the path to the feature file
-scenarios('features/list.feature')
+#scenarios('features/list.feature')
 
 #use these tags to run a specific scenario when multiple scenarios are in feature file
 #terminal pytest -m delete_list
 @pytest.mark.add_list
 @scenario('features/list.feature', 'Verify successful adding of a new list to Task Manager')
-def test_add_list():
+def test_add_list(set_auth_state):
     pass
 
 with open('data/credentials.json') as f:
@@ -33,12 +33,12 @@ def shared_data():
 
 @given('The user is on dashboard page')
 def user_on_dashboard_page(browser_instance, shared_data):
-    state = "auth_state.json" if os.path.exists("auth_state.json") else None
-    if state:
-        dashboard_page = DashboardPage(browser_instance)
-    else:
-        login_page = LoginPage(browser_instance)
-        dashboard_page = login_page.login(user_credentials_list[0]['user_email'],user_credentials_list[0]['password'])
+    #state = "auth_state.json" if os.path.exists("auth_state.json") else None
+    #if state:
+    dashboard_page = DashboardPage(browser_instance)
+    #else:
+     #   login_page = LoginPage(browser_instance)
+      #  dashboard_page = login_page.login(user_credentials_list[0]['user_email'],user_credentials_list[0]['password'])
 
     shared_data['dashboard_page'] = dashboard_page
     time.sleep(2)
@@ -62,4 +62,6 @@ def add_list_name(shared_data):
 @then('A new list is created')
 def validate_new_list(shared_data):
     list_page = shared_data['list_page']
-    list_page.validate_list()
+    lists = list_page.validate_list()[0]
+    list_name = list_page.validate_list()[1]
+    assert list_name in lists
