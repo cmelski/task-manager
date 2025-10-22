@@ -1,21 +1,12 @@
 import json
 import os
-
 import pytest
 from pytest_bdd import given, when, then, parsers, scenarios, scenario
-
 from page_objects.dashboard import DashboardPage
-from page_objects.login import LoginPage
 import time
 
 # define the path to the feature file
 #scenarios('features/list.feature')
-
-with open('data/credentials.json') as f:
-    test_data = json.load(f)
-    user_credentials_list = test_data['user_credentials']
-    user_credentials_list[0]['password'] = os.environ.get('PASS')
-
 
 # define a fixture and update the fixture as you go with data you will need in each function
 @pytest.fixture
@@ -26,7 +17,7 @@ def shared_data():
 #use these tags to run a specific scenario when multiple scenarios are in feature file
 #terminal pytest -m delete_list
 @pytest.mark.delete_list
-@scenario('features/list.feature', 'Verify successful deletion of a list')
+@scenario('../features/list.feature', 'Verify successful deletion of a list')
 def test_delete_list(set_auth_state):
     pass
 

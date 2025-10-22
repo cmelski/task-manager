@@ -20,3 +20,9 @@ Feature: List functionality in Task Manager
     When I locate and click an existing list
     And Add a list item
     Then The list item is created
+
+  Scenario: Verify successful list item deletion
+    Given The User is on dashboard page
+    When I locate and click an existing list
+    And Click delete on a list item
+    Then The list item is deleted

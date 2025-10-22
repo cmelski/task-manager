@@ -3,16 +3,13 @@ Feature: Login to Task Manager
 
   Scenario Outline: Verify successful login to Task Manager
     Given The user is on landing page
-    When I log into Task Manager with <user_email> and <password>
+    When I log into Task Manager with user_email "<user_email>" and password "<password>"
     Then Successful login result is achieved
     Examples:
       | user_email            | password    |
-      | c_melski@yahoo.com    | render2011$ |
+      | user_email            | password |
 
-  Scenario Outline: Verify unsuccessful login to Task Manager
+  Scenario: Verify unsuccessful login to Task Manager
     Given The user is on landing page
-    When I log into Task Manager using wrong password with <user_email> and <password>
-    Then Unsuccessful login result is achieved
-    Examples:
-      | user_email            | password    |
-      | c_melski@yahoo.com    | render2011 |
+    When I navigate to the Login Page
+    Then Login is rejected when incorrect user_email "user_email" and/or password "password" is entered

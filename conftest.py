@@ -23,7 +23,7 @@ def pytest_addoption(parser):
     )
 
     parser.addoption(
-        "--url_start", action="store", default="https://task-manager-6pqf.onrender.com/", help="starting url"
+        "--url_start", action="store", default=os.environ.get('BASE_URL'), help="starting url"
     )
 
 
@@ -57,7 +57,7 @@ def browser_instance(playwright, request):
     browser_name = request.config.getoption('browser_name')
     url_start = request.config.getoption('url_start')
     if browser_name == 'chrome':
-        browser = playwright.chromium.launch(headless=False)
+        browser = playwright.chromium.launch(headless=False, timeout=120000)
     elif browser_name == 'firefox':
         browser = playwright.firefox.launch(headless=False)
 
