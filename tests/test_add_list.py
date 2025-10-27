@@ -5,6 +5,9 @@ from pytest_bdd import given, when, then, parsers, scenarios, scenario
 from page_objects.dashboard import DashboardPage
 import time
 
+from tests.conftest import logger
+
+
 # define the path to the feature file
 #scenarios('features/list.feature')
 
@@ -56,3 +59,4 @@ def validate_new_list(shared_data):
     lists = list_page.validate_list()[0]
     list_name = list_page.validate_list()[1]
     assert list_name in lists
+    logger.info(f'New list {list_name} added successfully')
