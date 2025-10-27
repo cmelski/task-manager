@@ -59,4 +59,4 @@ def validate_new_list(shared_data):
     lists = list_page.validate_list()[0]
     list_name = list_page.validate_list()[1]
     assert list_name in lists
-    logger.info(f'New List {list_name} added successfully.  Way to go!!')
+    logger.info(f'New List {list_name} added successfully')
