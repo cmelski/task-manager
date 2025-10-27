@@ -1,5 +1,7 @@
+from datetime import date, timedelta
+
 import pytest
-from pytest_bdd import given, when, then, scenario
+from pytest_bdd import given, when, then, scenario, parsers
 from tests.conftest import logger
 from page_objects.dashboard import DashboardPage
 import time
@@ -9,9 +11,9 @@ import time
 
 #use these tags to run a specific scenario when multiple scenarios are in feature file
 #terminal pytest -m delete_list
-@pytest.mark.add_list_item
-@scenario('../features/list.feature', 'Verify successful list item creation')
-def test_add_list_item(set_auth_state):
+@pytest.mark.update_list_item
+@scenario('../features/list.feature', 'Verify successful list item modification')
+def test_update_list_item(set_auth_state):
     pass
 
 # define a fixture and update the fixture as you go with data you will need in each function
@@ -33,7 +35,6 @@ def user_on_dashboard_page(browser_instance, shared_data):
     time.sleep(2)
 
 
-
 @when('I locate and click an existing list')
 def select_existing_list(shared_data):
     dashboard_page = shared_data['dashboard_page']
@@ -41,20 +42,25 @@ def select_existing_list(shared_data):
     shared_data['list_page'] = list_page
     time.sleep(2)
 
-@when('Add a list item')
-def add_list_name(shared_data):
+@when(parsers.cfparse(
+    'Amend a list item task_name "{task_name}", assignee "{assignee}", notes "{notes}", '
+    'complete "{complete}" and click Save'
+))
+def update_list_item(shared_data, task_name, assignee, notes, complete):
+    is_complete = complete.lower() == "true"
     list_page = shared_data['list_page']
-    list_item = list_page.add_list_item()
-    shared_data['list_item'] = list_item
+    due_date = (date.today() + timedelta(days=1)).strftime("%Y-%m-%d")
+    update_details = [task_name, due_date, assignee, notes, is_complete]
+    updated_list_item = list_page.update_list_item(update_details)
+    shared_data['updated_list_item'] = (updated_list_item,update_details)
 
 
+@then('The list item is updated')
+def validate_list_item_update(shared_data):
+    before_item = shared_data['updated_list_item'][1]
+    logger.info(before_item)
+    after_item = shared_data['updated_list_item'][0]
+    logger.info(after_item)
 
-@then('The list item is created')
-def validate_new_list(shared_data):
-    list_page = shared_data['list_page']
-    list_item = shared_data['list_item']
-    last_item = list_page.validate_new_item()
-    logger.info(list_item)
-
-    for i in range(0,len(list_item[0])):
-        assert list_item[0][i] == last_item[0][i]
+    for i in range(0,len(before_item)):
+        assert before_item[i] == after_item[i]

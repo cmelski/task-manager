@@ -1,7 +1,9 @@
 import random
 import string
 
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+
+from tests.conftest import logger
 
 
 def generate_random_string():
@@ -14,8 +16,12 @@ new_item_data = ['Chris', 'test notes', True]
 from playwright.sync_api import sync_playwright
 
 
-def select_date(page):
-    tomorrow_str = (date.today() + timedelta(days=1)).strftime("%Y-%m-%d")
+def select_date(page, due_date='', index=-1):
+    if due_date == '':
+        tomorrow_str = (date.today() + timedelta(days=0)).strftime("%Y-%m-%d")
+    else:
+        tomorrow_str = due_date
+
     day = int(tomorrow_str.split('-')[2])
     """
     Select a date in the table row `row_index` and day number `day` in the calendar widget.
@@ -23,23 +29,36 @@ def select_date(page):
     day: day number to select (1-31)
     """
     # Locate the input in the given row
-    row_selector = 'table.task-table > tbody > tr:last-child'
-    input_selector = f'{row_selector} .calendar-wrapper .date-input'
+    if index == -1:
+        row_selector = 'table.task-table > tbody > tr:last-child'
+        input_selector = f'{row_selector} .calendar-wrapper .date-input'
+    else:
+        row_selector = f'table.task-table > tbody > tr input[name*="due_{str(index)}"]'
+        input_selector = f'{row_selector}.date-input'
 
     # Click the input to open the calendar popup
     page.click(input_selector)
 
     # Click the day cell in the calendar
     day_cell_selector = f'{row_selector} .calendar-wrapper .calendar-days td[data-testid="day-{day:02}"]'
+    logger.info(f'day cell selector is : {day_cell_selector}')
 
     # Since your calendar uses full ISO for data-testid, we need year-month-day
     # Let's get the currently displayed month/year from the calendar header
-    month_label_selector = f'{row_selector} .calendar-wrapper .month-label'
-    month_year_text = page.locator(month_label_selector).inner_text()
+    if index == -1:
+        month_label_selector = f'{row_selector} .calendar-wrapper .month-label'
+        month_year_text = page.locator(month_label_selector).inner_text()
+    else:
+        month_label_selector = f'table.task-table > tbody > tr:nth-last-child({index + 3}) .calendar-wrapper .month-label'
+        month_year_text = page.locator(month_label_selector).inner_text()
+
     # month_year_text is like "Oct 2025"
-    from datetime import datetime
+
     displayed_month = datetime.strptime(month_year_text, '%b %Y')
     iso_day = f'{displayed_month.year}-{displayed_month.month:02}-{day:02}'
-    day_cell_selector = f'{row_selector} .calendar-wrapper td[data-testid="day-{iso_day}"]'
+    if index == -1:
+        day_cell_selector = f'{row_selector} .calendar-wrapper td[data-testid="day-{iso_day}"]'
+    else:
+        day_cell_selector = f'table.task-table > tbody > tr:nth-last-child({3}) .calendar-wrapper td[data-testid="day-{iso_day}"] '
 
     page.click(day_cell_selector)
