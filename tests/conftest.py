@@ -1,6 +1,7 @@
 import os
 import shutil
 import logging
+import time
 from pathlib import Path
 
 import pytest
@@ -8,7 +9,7 @@ import psutil
 
 # load .env file variables
 from dotenv import load_dotenv
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, TimeoutError
 
 load_dotenv()
 
@@ -89,6 +90,17 @@ def set_auth_state():
 
 
 
+def safe_goto(page, url, retries=3, delay=5):
+    for attempt in range(1, retries + 1):
+        try:
+            page.goto(url, timeout=20000)
+            return
+        except TimeoutError:
+            print(f"⚠️ Attempt {attempt} failed to reach {url}, retrying in {delay}s...")
+            time.sleep(delay)
+    raise TimeoutError(f"Failed to load {url} after {retries} retries")
+
+
 # main tests fixture that yields page object and then closes context and browser after yield as part of teardown
 @pytest.fixture(scope='function')
 def browser_instance(request):
@@ -108,7 +120,8 @@ def browser_instance(request):
             context = browser.new_context()
 
         page = context.new_page()
-        page.goto(url_start)
+        #page.goto(url_start)
+        safe_goto(page,url_start)
         try:
             yield page
         finally:
