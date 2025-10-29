@@ -4,6 +4,7 @@ from playwright.sync_api import expect
 from .list import ListPage
 
 
+
 class DashboardPage:
 
     def __init__(self, page):
@@ -12,10 +13,10 @@ class DashboardPage:
     def verify_dashboard(self):
         self.page.locator('.tooltip').first.hover()
         # Get the tooltip text
-        user = self.page.locator('.tooltip .tooltiptext').nth(0).inner_text()
+        user_name = self.page.locator('.tooltip .tooltiptext').nth(0).inner_text()
         expect(self.page.locator('.tooltip .tooltiptext').nth(0)).not_to_be_empty()
         self.page.context.storage_state(path="auth_state.json")
-        return user
+        return user_name
 
     def add_new_list(self):
         self.page.locator('a[href="/add_list"]').click()
@@ -75,3 +76,10 @@ class DashboardPage:
     def validate_list_deletion(self):
         lists = self.page.locator('a[href*="/list_details"]').all_text_contents()
         return lists
+
+    def navigate_to_register_page(self):
+        self.page.locator('li a').first.click()
+        self.page.locator('a:has-text("Register")').click()
+        from .register import RegisterPage
+        register_page = RegisterPage(self.page)
+        return register_page

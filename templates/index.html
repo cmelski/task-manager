@@ -37,8 +37,9 @@
 /* Tooltip text */
 .tooltip .tooltiptext {
   visibility: hidden;
-  width: 100px;
+  width: 225px;
   background-color: black;
+  right: 100%;
   color: #fff;
   text-align: center;
   padding: 0px 0;
@@ -80,7 +81,7 @@
 								<nav>
 									<ul>
 										{% if current_user.is_authenticated: %}
-										<div class="tooltip"><span style="font-size: 24px;">👤</span><span class="tooltiptext">{{current_user.name}}</span></div>
+										<div class="tooltip"><span style="font-size: 20px;">👤</span><span class="tooltiptext">{{current_user.name}}/{{current_user.email}}</span></div>
 										<li><a href="#menu">Menu</a></li>
 
 										{% else: %}

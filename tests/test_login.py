@@ -5,6 +5,7 @@ import pytest
 from pytest_bdd import given, when, then, parsers, scenario
 
 import utils.db_connect as db_connect
+from dao.user_dao import User_DAO
 from tests.conftest import logger
 from page_objects.login import LoginPage
 import time
@@ -36,12 +37,11 @@ def user_on_landing_page_single_user(browser_instance, shared_data):
 
     login_page = LoginPage(browser_instance)
     shared_data['login_page'] = login_page
-    logger.info(shared_data)
+
 
 
 @when(parsers.parse('I log into task manager with user_email and password single user'))
 def login_to_portal_single_user(shared_data):
-    logger.info(shared_data)
     login_page = shared_data['login_page']
     login_page.navigate_to_login_page()
     with open('data/credentials.json') as f:  # path is relative to project root
@@ -64,16 +64,15 @@ def login_to_portal_single_user(shared_data):
 @then('Successful login result is achieved single user')
 def validate_login_single_user(shared_data):
     dashboard_page = shared_data['dashboard_page']
-    user = dashboard_page.verify_dashboard()
-    logger.info(user)
-    con = db_connect.DBConnect()
-    con.cursor.execute("SELECT id, email, name FROM users WHERE name = %s", (user,))
-    row = con.cursor.fetchone()
-    con.close()
-    logger.info(row)
-    assert len(user) > 0
-    assert row[2] == user
-    assert  row[1] == os.environ.get('USER_EMAIL')
+    user_name = dashboard_page.verify_dashboard()
+    logger.info(user_name)
+    user_dao = User_DAO(db_connect.DBConnect())
+    user = user_dao.get_user_by_name(user_name)
+    logger.info(user_name)
+    assert len(user_name) > 0
+    assert user[2] == user_name
+    assert user[1] == os.environ.get('USER_EMAIL')
+    logger.info(f'User {user_name} : {user[1]} successfully logged in!')
 
 
 
