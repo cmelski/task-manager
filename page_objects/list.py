@@ -80,6 +80,7 @@ class ListPage:
         cells = self.page.locator('table.task-table > tbody > tr > td')
         if cells.count() < 10:  # list has no items; need to add an item first
             self.add_list_item()
+        item_to_update = self.validate_new_item()
         rows = self.page.locator('table.task-table > tbody > tr')
         last_index = rows.count() - 2  # don't want the add new task row and index starts from 0
         logger.info(f'last index is {last_index}')
@@ -115,7 +116,7 @@ class ListPage:
         updated_item.append(notes)
         updated_item.append(complete)
 
-        return updated_item
+        return item_to_update,updated_item
 
     def select_clone(self):
         # get list name and list details

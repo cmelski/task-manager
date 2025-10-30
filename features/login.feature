@@ -1,6 +1,7 @@
 Feature: Login to Task Manager
   Tests related to login function
 
+  @smoke
   Scenario: Verify successful login to Task Manager Single User
     Given The user is on landing page single user
     When I log into task manager with user_email and password single user

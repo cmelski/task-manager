@@ -7,16 +7,13 @@ class LoginPage:
     def __init__(self, page):
         self.page = page
 
-    def navigate_to_login_page(self):
-        self.page.locator('li a').first.click()
-        self.page.locator('a:has-text("Log In")').click()
-
     def login(self, user_email, password):
         self.page.locator('#email').fill(user_email)
         self.page.locator('#password').fill(password)
         self.page.locator('#submit').click()
 
         dashboard_page = DashboardPage(self.page)
+
         return dashboard_page
 
     def invalid_login(self, user_email, password):

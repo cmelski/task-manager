@@ -1,8 +1,9 @@
 import time
 
 from playwright.sync_api import expect
-from .list import ListPage
 
+from tests.conftest import logger
+from .list import ListPage
 
 
 class DashboardPage:
@@ -10,13 +11,20 @@ class DashboardPage:
     def __init__(self, page):
         self.page = page
 
+    def navigate_to_login_page(self):
+        from .login import LoginPage
+        self.page.locator('li a').first.click()
+        login_page = LoginPage(self.page)
+        self.page.locator('a:has-text("Log In")').click()
+        return login_page
+
     def verify_dashboard(self):
         self.page.locator('.tooltip').first.hover()
         # Get the tooltip text
-        user_name = self.page.locator('.tooltip .tooltiptext').nth(0).inner_text()
+        user = self.page.locator('.tooltip .tooltiptext').nth(0).inner_text()
         expect(self.page.locator('.tooltip .tooltiptext').nth(0)).not_to_be_empty()
         self.page.context.storage_state(path="auth_state.json")
-        return user_name
+        return user
 
     def add_new_list(self):
         self.page.locator('a[href="/add_list"]').click()
@@ -83,3 +91,20 @@ class DashboardPage:
         from .register import RegisterPage
         register_page = RegisterPage(self.page)
         return register_page
+
+    def logout(self):
+
+        self.page.locator('li a').first.click()
+        self.page.locator('a:has-text("Log Out")').click()
+
+    def verify_logout(self):
+
+        self.page.wait_for_timeout(2000)
+        self.page.locator('.tooltip').first.hover()
+        tooltip = self.page.locator('div.tooltip .tooltiptext:last-child').inner_text()
+        logger.info(f'Tooltip: {tooltip}')
+
+        if 'Add' in tooltip:
+            return True
+        else:
+            return False

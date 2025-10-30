@@ -15,6 +15,7 @@ Feature: List functionality in Task Manager
     And Click Delete
     Then The list is deleted
 
+  @smoke
   Scenario: Verify successful list item creation
     Given The User is on dashboard page
     When I locate and click an existing list

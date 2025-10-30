@@ -4,13 +4,13 @@ class User_DAO:
 
         self.connect = db_connect
 
-    def get_user_by_name(self, user_name):
+    def get_user_by_email(self, user_email):
 
-        self.connect.cursor.execute("SELECT id, email, name FROM users WHERE name = %s", (user_name,))
+        self.connect.cursor.execute("SELECT id, email, name FROM users WHERE email = %s", (user_email,))
         row = self.connect.cursor.fetchone()
         return row
 
-    def delete_user(self, user_email):
+    def delete_user_by_user_email(self, user_email):
         self.connect.cursor.execute("""
                                     DELETE FROM users
                                     WHERE email = %s;

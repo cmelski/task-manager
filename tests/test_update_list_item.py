@@ -52,15 +52,17 @@ def update_list_item(shared_data, task_name, assignee, notes, complete):
     due_date = (date.today() + timedelta(days=1)).strftime("%Y-%m-%d")
     update_details = [task_name, due_date, assignee, notes, is_complete]
     updated_list_item = list_page.update_list_item(update_details)
-    shared_data['updated_list_item'] = (updated_list_item,update_details)
+    shared_data['updated_list_item'] = [updated_list_item,update_details]
 
 
 @then('The list item is updated')
 def validate_list_item_update(shared_data):
-    before_item = shared_data['updated_list_item'][1]
-    logger.info(before_item)
-    after_item = shared_data['updated_list_item'][0]
-    logger.info(after_item)
+    item_to_update = shared_data['updated_list_item'][0][0]
+    update_details = shared_data['updated_list_item'][1]
+    item_after_update = shared_data['updated_list_item'][0][1]
+    logger.info(f'Item to update: {item_to_update}')
+    logger.info(f'Update Details: {update_details}')
+    logger.info(f'Item after update: {item_after_update}')
 
-    for i in range(0,len(before_item)):
-        assert before_item[i] == after_item[i]
+    for i in range(0,len(update_details)):
+        assert update_details[i] == item_after_update[i]
