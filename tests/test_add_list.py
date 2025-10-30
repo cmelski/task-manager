@@ -8,6 +8,12 @@ import time
 from tests.conftest import logger
 
 
+# define a fixture and update the fixture as you go with data you will need in each function
+@pytest.fixture
+def shared_data():
+    return {}
+
+
 # define the path to the feature file
 #scenarios('features/list.feature')
 
@@ -18,11 +24,6 @@ from tests.conftest import logger
 def test_add_list(set_auth_state):
     pass
 
-
-# define a fixture and update the fixture as you go with data you will need in each function
-@pytest.fixture
-def shared_data():
-    return {}
 
 
 @given('The user is on dashboard page')
@@ -36,7 +37,6 @@ def user_on_dashboard_page(browser_instance, shared_data):
 
     shared_data['dashboard_page'] = dashboard_page
     time.sleep(2)
-
 
 
 @when('I click on add list')
@@ -60,3 +60,38 @@ def validate_new_list(shared_data):
     list_name = list_page.validate_list()[1]
     assert list_name in lists
     logger.info(f'New List {list_name} added successfully!')
+
+
+@pytest.mark.add_list_redirect
+@scenario('../features/dashboard.feature', 'Verify user redirected to Login Page if trying to add a new list while logged out')
+def test_add_list_redirect(clean_auth_state_before_login):
+    pass
+
+
+
+@given('The user is on dashboard page and logged out')
+def user_on_dashboard_page(browser_instance, shared_data):
+    #state = "auth_state.json" if os.path.exists("auth_state.json") else None
+    #if state:
+    dashboard_page = DashboardPage(browser_instance)
+    #else:
+     #   login_page = LoginPage(browser_instance)
+      #  dashboard_page = login_page.login(user_credentials_list[0]['user_email'],user_credentials_list[0]['password'])
+
+    shared_data['dashboard_page'] = dashboard_page
+    time.sleep(2)
+
+
+@when('I try to Add a new list')
+def click_new_list(shared_data):
+    dashboard_page = shared_data['dashboard_page']
+    login_page = dashboard_page.add_new_list()
+    shared_data['login_page'] = login_page
+    time.sleep(2)
+
+@then('I am redirected to the Login Page')
+def login_redirect(shared_data):
+    login_page = shared_data['login_page']
+    login_page.validate_on_login_page()
+
+

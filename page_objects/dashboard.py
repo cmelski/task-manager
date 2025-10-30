@@ -27,6 +27,22 @@ class DashboardPage:
         return user
 
     def add_new_list(self):
+
+        #check if logged in
+        self.page.locator('li a').first.click()
+        menu_options = self.page.locator('li a').all()
+        for option in menu_options:
+            menu_text = option.inner_text()
+            logger.info(f'Menu option: {menu_text}')
+            if menu_text == 'Log In':
+
+                from .login import LoginPage
+                login_page = LoginPage(self.page)
+                self.page.locator('.close').click()
+                self.page.locator('a[href="/add_list"]').click()
+                return login_page
+
+        self.page.locator('.close').click()
         self.page.locator('a[href="/add_list"]').click()
         new_list_page = ListPage(self.page)
         return new_list_page

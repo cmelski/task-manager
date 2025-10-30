@@ -28,3 +28,7 @@ class LoginPage:
         expect(self.page.get_by_text('Invalid')).to_be_visible()
         assert 'Invalid' in invalid_text
         return invalid_text
+
+    def validate_on_login_page(self):
+        expect(self.page.get_by_text('Login')).to_be_visible()
+
