@@ -770,26 +770,27 @@ def email_list(list_id):
 #         return redirect(url_for("show_list_details", list_id=list_id))
 #
 
-# @app.route('/outstanding_tasks')
-# @logged_in_only
-# def outstanding_task_report():
-#     print(current_user.id)
-#     try:
-#         result = db.session.query(ListTitle, ListItem).filter(ListTitle.user_id == current_user.id, ).filter(
-#             ListTitle.id == ListItem.list_id, ).filter(ListItem.completed == '0', ).all()
-#     except:
-#         result = db.session.query(ListTitle, ListItem).filter(ListTitle.user_id == current_user.id, ).filter(
-#             ListTitle.id == ListItem.list_id, ).filter(ListItem.completed == '0').all()
-#
-#     outstanding = result
-#     print(outstanding)
-#     for i in range(0, len(outstanding)):
-#         # this query result is a tuple
-#         if outstanding[i][1].due_date:
-#             formatted_date = datetime.strptime(outstanding[i][1].due_date, '%Y-%m-%d')
-#             formatted_date = formatted_date.strftime('%b %-d, %Y')
-#             outstanding[i][1].due_date = formatted_date
-#     return render_template("outstanding_tasks.html", outstanding=outstanding)
+@app.route('/outstanding_tasks')
+@logged_in_only
+def outstanding_task_report():
+    print(current_user.id)
+    con = DBConnect()
+    con.cursor.execute(
+    f'''
+    SELECT a.*, b.name AS list_name, c.name AS user_name
+    FROM items a
+    JOIN list b ON a.list_id = b.id
+    JOIN users c ON b.user_id = c.id
+    WHERE a.completed = false
+      AND c.id = %s
+    ORDER BY a.due_date ASC;
+    ''',
+    (current_user.id,)
+    )
+    outstanding_tasks = con.cursor.fetchall()
+    print(outstanding_tasks)
+    con.cursor.close()
+    return render_template("outstanding_tasks.html", outstanding=outstanding_tasks)
 
 
 @app.route("/clone/<list_name>/<list_id>", methods=["GET", "POST"])

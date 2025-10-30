@@ -64,6 +64,8 @@ def clean_auth_state_before_login():
         logger.info("Deleted auth_state.json before login test.")
 
 
+
+
 # call this fixture to set auth state to bypass login
 @pytest.fixture
 def set_auth_state():
@@ -127,6 +129,10 @@ def browser_instance(request):
         finally:
             context.close()
             browser.close()
+            file_path = Path(__file__).parent.parent / "auth_state.json"
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                logger.info("Deleted auth_state.json before login test.")
 
 
 @pytest.fixture(scope='function')

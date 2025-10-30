@@ -147,7 +147,7 @@
 										<h2>List Reports</h2>
 										<div class="content">
 											{% if current_user.is_authenticated: %}
-											<object><a href="{{ url_for('home') }}">Outstanding Tasks</a></object><br>
+											<object><a href="{{ url_for('outstanding_task_report') }}">Outstanding Tasks</a></object><br>
 											{% endif %}
 										</div>
 									</a>

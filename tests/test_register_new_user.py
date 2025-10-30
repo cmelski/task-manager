@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 
 import pytest
 from pytest_bdd import given, when, then, parsers, scenario
@@ -19,6 +20,8 @@ import time
 @pytest.fixture()
 def shared_data():
     return {}
+
+
 
 
 # use these tags to run a specific scenario when multiple scenarios are in feature file
@@ -73,6 +76,7 @@ def validate_successful_registration(shared_data):
     user_dao.delete_user_by_user_email(user[1])
     logger.info(f'New user {user_name} successfully deleted')
     user_dao.connect.cursor.close()
+
 
 
 # invalid registration

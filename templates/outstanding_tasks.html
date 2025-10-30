@@ -108,6 +108,7 @@
 							<th scope="col">Assignee</th>
 							<th scope="col">Notes</th>
 								<th scope="col">List Name</th>
+								<th scope="col">User Name</th>
 
 
             			</tr>
@@ -120,11 +121,12 @@
 
     					<tr>
 
-        						<td>{{outstanding[i][1].task}}</td>
-								<td>{{outstanding[i][1].due_date}}</td>
-								<td>{{outstanding[i][1].assignee}}</td>
-								<td>{{outstanding[i][1].notes}}</td>
-								<td><a href="{{ url_for('show_list_details',list_id = outstanding[i][1].item_name.id)}}">{{outstanding[i][1].item_name.name}}</a></td>
+        						<td>{{outstanding[i][2]}}</td>
+								<td>{{outstanding[i][3]}}</td>
+								<td>{{outstanding[i][4]}}</td>
+								<td>{{outstanding[i][5]}}</td>
+								<td><a href="{{ url_for('show_list_details',list_id = outstanding[i][1])}}">{{outstanding[i][7]}}</a></td>
+								<td>{{outstanding[i][8]}}</td>
 						</tr>
 
 

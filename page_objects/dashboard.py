@@ -100,11 +100,15 @@ class DashboardPage:
     def verify_logout(self):
 
         self.page.wait_for_timeout(2000)
-        self.page.locator('.tooltip').first.hover()
-        tooltip = self.page.locator('div.tooltip .tooltiptext:last-child').inner_text()
-        logger.info(f'Tooltip: {tooltip}')
+        self.page.locator('li a').first.click()
+        menu_options = self.page.locator('li a').all()
+        for option in menu_options:
+            menu_text = option.inner_text()
+            logger.info(f'Menu option: {menu_text}')
+            if 'Log Out' in menu_text:
+                return False
 
-        if 'Add' in tooltip:
-            return True
-        else:
-            return False
+        return True
+
+
+
