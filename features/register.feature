@@ -1,6 +1,7 @@
 Feature: Resister to use Task Manager
   Tests related to Register function
 
+  @smoke
   Scenario: Verify successful user registration to Task Manager
     Given The new user is on landing page
     When Navigate to Register page

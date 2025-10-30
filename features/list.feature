@@ -16,6 +16,13 @@ Feature: List functionality in Task Manager
     Then The list is deleted
 
   @smoke
+  Scenario: Verify list name can be updated
+    Given The User is on dashboard page
+    When I locate and click an existing list
+    And Change the list name and click Enter
+    Then The list name is successfully updated
+
+  @smoke
   Scenario: Verify successful list item creation
     Given The User is on dashboard page
     When I locate and click an existing list

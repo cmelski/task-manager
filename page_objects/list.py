@@ -16,6 +16,7 @@ class ListPage:
 
     def validate_list(self):
         list_name = self.page.locator('input[name="list_name"]').input_value()
+        self.page.wait_for_timeout(2000)
         self.page.locator('li a').first.click(force=True)
 
         # Wait for the list container or at least one link to appear
@@ -23,6 +24,16 @@ class ListPage:
 
         lists = self.page.locator('object a').all_text_contents()
         return lists, list_name
+
+    def update_list_name(self):
+        locator = self.page.locator('input[name="list_name"]')
+        old_list_name = locator.input_value()
+        new_list_name = util.generate_random_string() + ' List'
+        locator.fill('')
+        locator.fill(new_list_name)
+        locator.press('Enter')
+        return old_list_name, new_list_name
+
 
     def add_list_item(self):
         list_item = []
