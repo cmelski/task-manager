@@ -788,12 +788,13 @@ def outstanding_task_report():
     (current_user.id,)
     )
     outstanding_tasks = con.cursor.fetchall()
-    print(outstanding_tasks)
     con.cursor.close()
-    if len(outstanding_tasks) == 0:
-        flash("There are no outstanding tasks")
+    print(outstanding_tasks)
     if request.args.get("mock_empty"):
         outstanding_tasks = []
+    if len(outstanding_tasks) == 0:
+        flash("There are no outstanding tasks")
+
     return render_template("outstanding_tasks.html", outstanding=outstanding_tasks)
 
 

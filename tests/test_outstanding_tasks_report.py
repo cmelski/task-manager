@@ -49,11 +49,12 @@ def user_on_dashboard_page(browser_instance, shared_data):
 @when('Navigate to Outstanding Tasks report')
 def click_outstanding_tasks_report(shared_data):
     dashboard_page = shared_data['dashboard_page']
-    report_page = dashboard_page.select_outstanding_tasks(intercept_response)
+    report_page = dashboard_page.select_outstanding_tasks()
     shared_data['report_page'] = report_page
     time.sleep(2)
 
 
 @then('No outstanding tasks message is displayed')
 def validate_no_outstanding_tasks_message(shared_data):
-    pass
+    report_page = shared_data['report_page']
+    report_page.verify_no_outstanding_tasks_message()
