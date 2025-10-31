@@ -95,7 +95,14 @@
 				<!-- Main -->
 					<div id="main" style="background-image: url('/static/images/checklist.jpeg'); background-size: cover; background-repeat: no-repeat">
 						<div class="inner">
-
+							    {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+            <p class="flash" style="font-size: 20px;color:#ff0000; font-weight: bold; font-style: italic">{{ message
+                }} </p>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
 
 							<h3>Outstanding Tasks Report</h3>
 

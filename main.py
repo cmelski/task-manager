@@ -790,6 +790,8 @@ def outstanding_task_report():
     outstanding_tasks = con.cursor.fetchall()
     print(outstanding_tasks)
     con.cursor.close()
+    if len(outstanding_tasks) == 0:
+        flash("There are no outstanding tasks")
     return render_template("outstanding_tasks.html", outstanding=outstanding_tasks)
 
 
