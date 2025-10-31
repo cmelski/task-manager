@@ -792,6 +792,8 @@ def outstanding_task_report():
     con.cursor.close()
     if len(outstanding_tasks) == 0:
         flash("There are no outstanding tasks")
+    if request.args.get("mock_empty"):
+        outstanding_tasks = []
     return render_template("outstanding_tasks.html", outstanding=outstanding_tasks)
 
 

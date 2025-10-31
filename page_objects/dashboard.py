@@ -6,6 +6,7 @@ from tests.conftest import logger
 from .list import ListPage
 
 
+
 class DashboardPage:
 
     def __init__(self, page):
@@ -125,6 +126,16 @@ class DashboardPage:
                 return False
 
         return True
+
+    def select_outstanding_tasks(self):
+        #self.page.route('/outstanding_tasks', intercept_response)
+        logger.info(f'Intercept: {intercept_response}')
+        #self.page.locator('a[href*="outstanding"]').route('/outstanding_tasks', intercept_response).click()
+        self.page.goto('https://task-manager-6pqf.onrender.com/outstanding_tasks?mock_empty=true')
+        from .report import ReportPage
+        report_page = ReportPage(self.page)
+        return report_page
+
 
 
 

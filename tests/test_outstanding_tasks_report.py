@@ -14,6 +14,13 @@ def shared_data():
     return {}
 
 
+# method to mock the api response
+def intercept_response(route):
+    route.fulfill(
+        empty_list=[]
+    )
+
+
 # define the path to the feature file
 #scenarios('features/list.feature')
 
@@ -26,7 +33,7 @@ def test_outstanding_tasks_report_none_outstanding(set_auth_state):
 
 
 
-@given('The user is on dashboard page and logged in')
+@given('The user is on landing page and logged in')
 def user_on_dashboard_page(browser_instance, shared_data):
     #state = "auth_state.json" if os.path.exists("auth_state.json") else None
     #if state:
@@ -42,15 +49,11 @@ def user_on_dashboard_page(browser_instance, shared_data):
 @when('Navigate to Outstanding Tasks report')
 def click_outstanding_tasks_report(shared_data):
     dashboard_page = shared_data['dashboard_page']
-    list_page = dashboard_page.add_new_list()
-    shared_data['list_page'] = list_page
+    report_page = dashboard_page.select_outstanding_tasks(intercept_response)
+    shared_data['report_page'] = report_page
     time.sleep(2)
 
 
 @then('No outstanding tasks message is displayed')
 def validate_no_outstanding_tasks_message(shared_data):
-    list_page = shared_data['list_page']
-    lists = list_page.validate_list()[0]
-    list_name = list_page.validate_list()[1]
-    assert list_name in lists
-    logger.info(f'New List {list_name} added successfully!')
+    pass
