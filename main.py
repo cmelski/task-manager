@@ -1,7 +1,7 @@
 from __future__ import annotations
 from datetime import date, datetime
 
-#import psycopg2
+# import psycopg2
 import psycopg
 from flask import Flask, abort, render_template, redirect, url_for, flash, request, jsonify
 from flask_bootstrap import Bootstrap5
@@ -155,15 +155,16 @@ class User:
 import os
 import psycopg
 
+
 def create_db():
     try:
         # Connect to the default database (e.g. 'postgres')
         with psycopg.connect(
-            host=os.environ.get('DB_HOST'),
-            dbname=os.environ.get('DB_NAME_DEFAULT'),
-            user=os.environ.get('DB_USER'),
-            password=os.environ.get('DB_PASSWORD'),
-            port=os.environ.get('DB_PORT')
+                host=os.environ.get('DB_HOST'),
+                dbname=os.environ.get('DB_NAME_DEFAULT'),
+                user=os.environ.get('DB_USER'),
+                password=os.environ.get('DB_PASSWORD'),
+                port=os.environ.get('DB_PORT')
         ) as conn:
             # Enable autocommit mode
             conn.autocommit = True
@@ -177,9 +178,7 @@ def create_db():
         print(f"Duplicate DB: {e}")
 
 
-
 create_db()
-
 
 # def create_table():
 #     conn = psycopg.connect(database=os.environ.get('DB_NAME'), user=os.environ.get('DB_USER'),
@@ -224,14 +223,15 @@ create_db()
 import os
 import psycopg
 
+
 def create_table():
     # Connect to your target database
     with psycopg.connect(
-        dbname=os.environ.get('DB_NAME'),
-        user=os.environ.get('DB_USER'),
-        password=os.environ.get('DB_PASSWORD'),
-        host=os.environ.get('DB_HOST'),
-        port=os.environ.get('DB_PORT')
+            dbname=os.environ.get('DB_NAME'),
+            user=os.environ.get('DB_USER'),
+            password=os.environ.get('DB_PASSWORD'),
+            host=os.environ.get('DB_HOST'),
+            port=os.environ.get('DB_PORT')
     ) as conn:
         conn.autocommit = True  # Apply changes immediately (no explicit commit needed)
 
@@ -271,6 +271,7 @@ def create_table():
             """)
 
         print("✅ Tables created successfully!")
+
 
 create_table()
 
@@ -778,11 +779,10 @@ def email_list(list_id):
 @app.route('/outstanding_tasks')
 @logged_in_only
 def outstanding_task_report():
-
     print(current_user.id)
     con = DBConnect()
     con.cursor.execute(
-    f'''
+        f'''
     SELECT a.*, b.name AS list_name, c.name AS user_name
     FROM items a
     JOIN list b ON a.list_id = b.id
@@ -791,7 +791,7 @@ def outstanding_task_report():
       AND c.id = %s
     ORDER BY a.due_date ASC;
     ''',
-    (current_user.id,)
+        (current_user.id,)
     )
     outstanding_tasks = con.cursor.fetchall()
     con.cursor.close()
@@ -931,6 +931,55 @@ def save_to_csv(list_id, list_name):
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
+
+@app.route('/api/add_new_list', methods=['POST'])
+def add_new_list_api():
+    data = request.get_json()
+
+    list_name = data.get('name')
+    user_id = data.get('user_id')
+
+    if not list_name:
+        return jsonify({"error": "List name is required"}), 400
+
+    try:
+        con = DBConnect()
+        con.cursor.execute(
+            "INSERT INTO list (user_id, name) VALUES (%s, %s) RETURNING id;",
+            (user_id, list_name)
+        )
+        list_id = con.cursor.fetchone()[0]
+        con.commit()
+        con.cursor.close()
+
+        return jsonify({
+            "message": "List created successfully",
+            "list_id": list_id,
+            "list_name": list_name
+        }), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/get_user_lists', methods=['GET'])
+def get_user_lists_api():
+    if request.args.get("user_id"):
+        user_id = request.args.get("user_id")
+
+        try:
+            con = DBConnect()
+            con.cursor.execute(
+                "SELECT * from list Where user_id = %s;", (user_id, )
+            )
+            lists = con.cursor.fetchall()
+            con.cursor.close()
+
+            return jsonify({
+                "message": "Lists returned successfully",
+                "lists": lists
+            }), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":

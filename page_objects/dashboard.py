@@ -126,12 +126,12 @@ class DashboardPage:
 
         return True
 
-    # def select_outstanding_tasks_report(self):
-    #     self.page.goto('https://task-manager-6pqf.onrender.com/outstanding_tasks?mock_empty=true')
-    #     from .report import ReportPage
-    #     report_page = ReportPage(self.page)
-    #     return report_page
+    def select_outstanding_tasks_report(self):
+        self.page.goto('https://task-manager-6pqf.onrender.com/outstanding_tasks?mock_empty=true')
+        from .report import ReportPage
+        report_page = ReportPage(self.page)
+        return report_page
 
-    @patch("main.con.cursor.fetchall", return_value=[])
-    def select_outstanding_tasks_report(self, mock_fetch):
-        self.page.goto('https://task-manager-6pqf.onrender.com/outstanding_tasks')
+    # @patch("main.con.cursor.fetchall", return_value=[])
+    # def select_outstanding_tasks_report(self, mock_fetch):
+    #     self.page.goto('https://task-manager-6pqf.onrender.com/outstanding_tasks')
