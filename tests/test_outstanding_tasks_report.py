@@ -49,7 +49,7 @@ def user_on_dashboard_page(browser_instance, shared_data):
 @when('Navigate to Outstanding Tasks report')
 def click_outstanding_tasks_report(shared_data):
     dashboard_page = shared_data['dashboard_page']
-    report_page = dashboard_page.select_outstanding_tasks()
+    report_page = dashboard_page.select_outstanding_tasks_report()
     shared_data['report_page'] = report_page
     time.sleep(2)
 

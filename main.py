@@ -68,6 +68,11 @@ class DBConnect:
             host=os.environ.get('DB_HOST'),
             port=os.environ.get('DB_PORT')
         )
+
+        self.host = os.getenv("DB_HOST")
+
+        if not self.host:
+            raise ValueError("DB_HOST is empty. Check your environment variables!")
         self.cursor = self.connection.cursor()
 
     def commit(self):
@@ -773,6 +778,7 @@ def email_list(list_id):
 @app.route('/outstanding_tasks')
 @logged_in_only
 def outstanding_task_report():
+
     print(current_user.id)
     con = DBConnect()
     con.cursor.execute(

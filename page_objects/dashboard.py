@@ -4,7 +4,7 @@ from playwright.sync_api import expect
 
 from tests.conftest import logger
 from .list import ListPage
-
+from unittest.mock import patch
 
 
 class DashboardPage:
@@ -29,14 +29,13 @@ class DashboardPage:
 
     def add_new_list(self):
 
-        #check if logged in
+        # check if logged in
         self.page.locator('li a').first.click()
         menu_options = self.page.locator('li a').all()
         for option in menu_options:
             menu_text = option.inner_text()
             logger.info(f'Menu option: {menu_text}')
             if menu_text == 'Log In':
-
                 from .login import LoginPage
                 login_page = LoginPage(self.page)
                 self.page.locator('.close').click()
@@ -127,12 +126,12 @@ class DashboardPage:
 
         return True
 
-    def select_outstanding_tasks(self):
-        self.page.goto('https://task-manager-6pqf.onrender.com/outstanding_tasks?mock_empty=true')
-        from .report import ReportPage
-        report_page = ReportPage(self.page)
-        return report_page
+    # def select_outstanding_tasks_report(self):
+    #     self.page.goto('https://task-manager-6pqf.onrender.com/outstanding_tasks?mock_empty=true')
+    #     from .report import ReportPage
+    #     report_page = ReportPage(self.page)
+    #     return report_page
 
-
-
-
+    @patch("main.con.cursor.fetchall", return_value=[])
+    def select_outstanding_tasks_report(self, mock_fetch):
+        self.page.goto('https://task-manager-6pqf.onrender.com/outstanding_tasks')
