@@ -1024,12 +1024,10 @@ def login_api():
         # Log in and authenticate user
         user = User(id=result[0][0], email=result[0][1], password=result[0][2], name=result[0][3])
         login_user(user)
-
         token = jwt.encode(
             {"email": email, "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
-            app.secret_key,
-            algorithm="HS256"
-        )
+                           app.secret_key,
+                           algorithm="HS256")
         return jsonify({
             "message": "Logged in successfully",
             "token": token

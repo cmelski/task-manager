@@ -20,4 +20,4 @@ python-dotenv~=1.1.1
 playwright~=1.55.0
 pytest-playwright
 pytest-html
-jwt
+PyJWT==2.9.0
