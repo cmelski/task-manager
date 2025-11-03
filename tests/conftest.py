@@ -132,7 +132,7 @@ def browser_instance(request):
             file_path = Path(__file__).parent.parent / "auth_state.json"
             if os.path.exists(file_path):
                 os.remove(file_path)
-                logger.info("Deleted auth_state.json before login test.")
+                logger.info("Deleted auth_state.json.")
 
 
 @pytest.fixture(scope='function')

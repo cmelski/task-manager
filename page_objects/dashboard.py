@@ -135,3 +135,16 @@ class DashboardPage:
     # @patch("main.con.cursor.fetchall", return_value=[])
     # def select_outstanding_tasks_report(self, mock_fetch):
     #     self.page.goto('https://task-manager-6pqf.onrender.com/outstanding_tasks')
+
+    def get_user_lists(self):
+        number_of_lists = self.page.locator('text=Active Lists').inner_text()
+        number_of_lists = int(number_of_lists.split('(')[1].replace(')', ''))
+        logger.info(f'Number of Lists: {number_of_lists}')
+
+        lists = self.page.locator('object a[href*="list_details"]').all()
+        lists = [list.inner_text() for list in lists]
+        logger.info(f'Lists on Dashboard: {lists}')
+        return lists
+
+    def reload_page(self):
+        self.page.reload()

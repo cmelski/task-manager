@@ -932,34 +932,40 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
+#REST API calls
 
 @app.route('/api/add_new_list', methods=['POST'])
 def add_new_list_api():
-    data = request.get_json()
-
-    list_name = data.get('name')
-    user_id = data.get('user_id')
-
-    if not list_name:
-        return jsonify({"error": "List name is required"}), 400
-
     try:
+        print("Raw request data:", request.data)
+        data = request.get_json(force=True)
+        print("Parsed data:", data)
+
+        if not data:
+            return jsonify({"error": "No JSON received"}), 400
+
+        name = data.get('name')
+        user_id = data.get('user_id')
+
+        print(f"Name: {name}, User ID: {user_id}")
+
+        if not name or not user_id:
+            return jsonify({"error": "Missing required fields"}), 400
+
         con = DBConnect()
         con.cursor.execute(
-            "INSERT INTO list (user_id, name) VALUES (%s, %s) RETURNING id;",
-            (user_id, list_name)
+            "INSERT INTO list (user_id, name) VALUES (%s, %s);",
+            (user_id, name)
         )
-        list_id = con.cursor.fetchone()[0]
-        con.commit()
+        con.connection.commit()
         con.cursor.close()
 
-        return jsonify({
-            "message": "List created successfully",
-            "list_id": list_id,
-            "list_name": list_name
-        }), 201
+        return jsonify({"message": "List added successfully"}), 201
+
     except Exception as e:
+        print("Error:", str(e))
         return jsonify({"error": str(e)}), 500
+
 
 @app.route('/api/get_user_lists', methods=['GET'])
 def get_user_lists_api():
