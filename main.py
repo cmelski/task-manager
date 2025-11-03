@@ -1,5 +1,8 @@
 from __future__ import annotations
 from datetime import date, datetime
+import jwt
+import datetime
+from dotenv import load_dotenv
 
 # import psycopg2
 import psycopg
@@ -932,7 +935,8 @@ def logout():
     logout_user()
     return redirect(url_for('home'))
 
-#REST API calls
+
+# REST API calls
 
 @app.route('/api/add_new_list', methods=['POST'])
 def add_new_list_api():
@@ -984,17 +988,53 @@ def get_user_lists_api():
         try:
             con = DBConnect()
             con.cursor.execute(
-                "SELECT * from list Where user_id = %s;", (user_id, )
+                "SELECT * from list Where user_id = %s;", (user_id,)
             )
             lists = con.cursor.fetchall()
             con.cursor.close()
 
-            return jsonify({
-                "message": "Lists returned successfully",
-                "lists": lists
-            }), 200
+            if len(lists) > 0:
+                return jsonify({
+                    "message": "Lists returned successfully",
+                    "lists": lists
+                }), 200
+            else:
+                return jsonify({
+                    "message": "User doesn't have any lists",
+                    "lists": lists
+                }), 200
+
         except Exception as e:
             return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/login', methods=['POST'])
+def login_api():
+    data = request.get_json()
+    email = data.get("email")
+    password = data.get("password")
+
+    con = DBConnect()
+    # Find user by email entered.
+    con.cursor.execute(f"SELECT * from users where users.email = '{email}';")
+    result = con.cursor.fetchall()
+    con.cursor.close()
+
+    if check_password_hash(result[0][2], password):
+        # Log in and authenticate user
+        user = User(id=result[0][0], email=result[0][1], password=result[0][2], name=result[0][3])
+        login_user(user)
+
+        token = jwt.encode(
+            {"email": email, "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
+            app.secret_key,
+            algorithm="HS256"
+        )
+        return jsonify({
+            "message": "Logged in successfully",
+            "token": token
+        })
+    return jsonify({"error": "Invalid credentials"}), 401
 
 
 if __name__ == "__main__":

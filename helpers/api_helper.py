@@ -15,3 +15,9 @@ class APIHelper:
         logger.info(f'Helper data: {data}')
         response = api_base.post(endpoint, data)
         return response
+
+    def login(self, endpoint='api/login', data=None):
+        api_base = APIBase()
+        logger.info(f'Helper data: {data}')
+        response = api_base.post(endpoint, data)
+        return response

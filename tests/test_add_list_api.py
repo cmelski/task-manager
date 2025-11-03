@@ -63,7 +63,7 @@ def add_list_api(shared_data):
     user_id = user[0]
     api_helper = APIHelper()
     add_list_api_response = api_helper.add_list(data={'user_id': user_id, 'name': utilities.generate_random_string() + 'List'})
-    logger.info(add_list_api_response)
+    logger.info(f'Add List API response: {add_list_api_response}')
     shared_data['add_list_api'] = add_list_api_response
 
     time.sleep(2)
@@ -72,5 +72,12 @@ def add_list_api(shared_data):
 @then('The list added via the API is displayed on the Dashboard')
 def validate_api_response(shared_data):
     dashboard_page = shared_data['dashboard_page']
+    lists_dashboard = dashboard_page.get_user_lists()
+    number_of_lists_dashboard_before_reload = len(lists_dashboard)
     dashboard_page.reload_page()
+    lists_dashboard = dashboard_page.get_user_lists()
+    number_of_lists_dashboard_after_reload = len(lists_dashboard)
+    added_list_api = shared_data['add_list_api']['list']
+    assert added_list_api['name'] in lists_dashboard
+    assert number_of_lists_dashboard_after_reload - number_of_lists_dashboard_before_reload == 1
 

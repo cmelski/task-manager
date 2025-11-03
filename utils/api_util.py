@@ -34,6 +34,6 @@ class APIBase:
         logger.info(f'{self.base_url+endpoint}')
         response.raise_for_status()
         assert response.ok
-        add_list_response = response.json()
-        logger.info(f'Add List response from API: {add_list_response}')
-        return add_list_response
+        response_message = response.json()
+        logger.info(f'Response from API: {response_message}')
+        return response_message
