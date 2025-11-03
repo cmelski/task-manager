@@ -954,13 +954,22 @@ def add_new_list_api():
 
         con = DBConnect()
         con.cursor.execute(
-            "INSERT INTO list (user_id, name) VALUES (%s, %s);",
+            "INSERT INTO list (user_id, name) VALUES (%s, %s) RETURNING id, user_id, name;",
             (user_id, name)
         )
+
+        new_list = con.cursor.fetchone()
         con.connection.commit()
+
         con.cursor.close()
 
-        return jsonify({"message": "List added successfully"}), 201
+        return jsonify({"message": "List added successfully",
+                        "list": {
+                            "id": new_list[0],
+                            "user_id": new_list[1],
+                            "name": new_list[2]
+                        }
+                        }), 201
 
     except Exception as e:
         print("Error:", str(e))

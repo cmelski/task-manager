@@ -28,9 +28,9 @@ class APIBase:
         logger.info(f'User Lists from API Call: {user_lists}')
         return user_lists
 
-    def post(self, endpoint=None, params=None, data=None, headers=None):
-        headers = {'Content-Type': 'application/json'}
-        response = requests.post(url=self.base_url+endpoint, data=json.dumps(data), headers=headers)
+    def post(self, endpoint=None, data=None):
+        #headers = {'Content-Type': 'application/json'}
+        response = requests.post(url=self.base_url+endpoint, json=data)
         logger.info(f'{self.base_url+endpoint}')
         response.raise_for_status()
         assert response.ok

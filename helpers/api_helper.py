@@ -10,7 +10,7 @@ class APIHelper:
         response = api_base.get(endpoint, params)
         return response
 
-    def add_list(self, endpoint='api/add_new_list', params=None, data=None):
+    def add_list(self, endpoint='api/add_new_list', data=None):
         api_base = APIBase()
         logger.info(f'Helper data: {data}')
         response = api_base.post(endpoint, data)
