@@ -862,6 +862,8 @@ def login():
     con = DBConnect()
     login_form = LoginForm()
     if login_form.validate_on_submit():
+        email = login_form.email.data
+        password = login_form.password.data
 
         # Find user by email entered.
         con.cursor.execute(f"SELECT * from users where users.email = '{login_form.email.data}';")
@@ -878,6 +880,7 @@ def login():
                 user = User(id=result[0][0], email=result[0][1], password=result[0][2], name=result[0][3])
                 login_user(user)
                 print(current_user.is_authenticated)
+
                 return redirect(url_for('home'))
             else:
                 flash("Invalid password")
@@ -1026,13 +1029,167 @@ def login_api():
         login_user(user)
         token = jwt.encode(
             {"email": email, "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
-                           app.secret_key,
-                           algorithm="HS256")
+            app.secret_key,
+            algorithm="HS256")
         return jsonify({
             "message": "Logged in successfully",
             "token": token
         })
     return jsonify({"error": "Invalid credentials"}), 401
+
+
+@app.route('/api/login_test', methods=["GET", "POST"])
+def login_api_test():
+    mock = request.args.get('mock')
+    print(f'Mock: {mock}')
+    payload = request.get_json()
+    email = payload.get("email")
+    password = payload.get("password")
+    print(email)
+
+    con = DBConnect()
+    # Find user by email entered.
+    con.cursor.execute(f"SELECT * from users where users.email = '{email}';")
+    result = con.cursor.fetchall()
+    con.cursor.close()
+
+    if check_password_hash(result[0][2], password):
+        # Log in and authenticate user
+        user = User(id=result[0][0], email=result[0][1], password=result[0][2], name=result[0][3])
+        login_user(user)
+        print(current_user.is_authenticated)
+
+        if mock == '1':
+            print('Reached here')
+
+            #return redirect(url_for('home'))
+        else:
+
+            return jsonify({
+                "message": "Logged in successfully",
+
+            })
+
+    return jsonify({"error": "Invalid credentials"}), 401
+
+
+@app.route('/api/verify_token', methods=['POST'])
+def verify_token():
+    token = request.json.get("token")
+    if not token:
+        return jsonify({"error": "Missing token"}), 400
+
+    try:
+        decoded = jwt.decode(token, app.secret_key, algorithms=["HS256"])
+        # Optional: check expiration manually if not auto-validated
+        exp = decoded.get("exp")
+        if exp and datetime.utcfromtimestamp(exp) < datetime.utcnow():
+            return jsonify({"error": "Token expired"}), 401
+        return jsonify({"valid": True, "user": decoded}), 200
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
+
+@app.route('/tasks_by_assignee')
+@logged_in_only
+def get_tasks_by_assignee_report():
+    con = DBConnect()
+
+    # 1️⃣ Get distinct assignees
+    # con.cursor.execute("""
+    #     SELECT DISTINCT assignee
+    #     FROM items a
+    #     JOIN list b ON a.list_id = b.id
+    #     JOIN users c ON b.user_id = c.id
+    #     WHERE c.id = %s
+    #     ORDER BY assignee;
+    # """, (current_user.id,))
+
+    con.cursor.execute("""
+    SELECT DISTINCT COALESCE(NULLIF(a.assignee, ''), 'Unassigned') AS assignee
+    FROM items a
+    JOIN list b ON a.list_id = b.id
+    JOIN users c ON b.user_id = c.id
+    WHERE a.completed = false
+    AND c.id = %s
+    ORDER BY assignee;
+    """, (current_user.id,))
+
+    assignees = [r[0] for r in con.cursor.fetchall()]
+
+    # 2️⃣ Build column definitions
+    columns_sql = ", ".join('"{}" text'.format(a or "Unassigned") for a in assignees)
+
+
+    # 3️⃣ Build dynamic SQL for crosstab
+    # query = f"""
+    # SELECT *
+    # FROM crosstab(
+    #     $$
+    #     SELECT a.task, a.assignee, '✔'
+    #     FROM items a
+    #     JOIN list b ON a.list_id = b.id
+    #     JOIN users c ON b.user_id = c.id
+    #     WHERE c.id = {current_user.id}
+    #     ORDER BY 1, 2
+    #     $$,
+    #     $$
+    #     SELECT DISTINCT a.assignee
+    #     FROM items a
+    #     JOIN list b ON a.list_id = b.id
+    #     JOIN users c ON b.user_id = c.id
+    #     WHERE c.id = {current_user.id}
+    #     ORDER BY assignee
+    #     $$
+    # ) AS ct(task text, {columns_sql});
+    # """
+    query = f"""
+    SELECT *
+    FROM crosstab(
+    $$
+    SELECT 
+        a.task,
+        COALESCE(NULLIF(a.assignee, ''), 'Unassigned') AS assignee,
+        '✔'
+    FROM items a
+    JOIN list b ON a.list_id = b.id
+    JOIN users c ON b.user_id = c.id
+    WHERE a.completed = false
+    AND c.id = {current_user.id}
+    ORDER BY 1,2
+    $$,
+    $$
+    SELECT DISTINCT COALESCE(NULLIF(a.assignee, ''), 'Unassigned') AS assignee
+    FROM items a
+    JOIN list b ON a.list_id = b.id
+    JOIN users c ON b.user_id = c.id
+    WHERE a.completed = false
+    AND c.id = {current_user.id}
+    ORDER BY assignee
+    $$
+    ) AS ct(task text, {columns_sql});
+    
+    """
+
+    # 4️⃣ Execute the dynamic query
+    con.cursor.execute(query)
+    rows = con.cursor.fetchall()
+
+    for row in rows:
+        print(row)
+
+    totals = []
+
+    # Loop through each assignee column index (skip first column = task name)
+    for col_idx in range(1, len(rows[0])):
+        count = sum(1 for row in rows if row[col_idx] == '✔')
+        totals.append(count)
+
+    totals_row = ('Totals', *totals)
+    rows.append(totals_row)
+
+    return render_template("tasks_by_assignee.html", rows=rows, assignees=assignees)
 
 
 if __name__ == "__main__":

@@ -59,6 +59,91 @@
 
 
    </style>
+		<!--{% if token %}
+		<script type="module">
+(async function autoLoginIfNeeded() {
+
+  try {
+    // 1) don't run if token already present or we already auto-logged-in this session
+    if (localStorage.getItem("token") || sessionStorage.getItem("autoLoginDone")) {
+      return;
+    }
+      // store token and mark we've auto-logged-in this session
+      //const token = "{{ token }}";
+      const token = localStorage.getItem("token")
+      localStorage.setItem("token", token);
+      sessionStorage.setItem("autoLoginDone", "1");
+
+      // avoid redirect loop: only navigate if we're not already on home
+      if (window.location.pathname !== "/") {
+        window.location.href = "/";
+      } else {
+        // if already at '/', just reload once to ensure UI picks up token
+        window.location.reload();
+      }
+
+  } catch (err) {
+    console.error("Auto-login error:", err);
+  }
+})();
+</script>
+
+			{% endif %}
+
+
+
+<script type="module">
+(async function autoLoginIfNeeded() {
+
+
+  try {
+    // 1) don't run if token already present or we already auto-logged-in this session
+    if (localStorage.getItem("token") || sessionStorage.getItem("autoLoginDone")) {
+      return;
+    }
+
+    // 2) credentials for test-only route; keep them safe and only use this in test/dev
+    //const payload = { email: "email", password: "password" };
+
+    // 3) POST to your test login endpoint (must accept POST JSON)
+    const response = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      //body: JSON.stringify(payload)
+    });
+
+    // 4) parse JSON safely
+    const data = await response.json().catch(() => null);
+
+    if (response.ok && data && data.token) {
+      // store token and mark we've auto-logged-in this session
+      localStorage.setItem("token", data.token);
+      sessionStorage.setItem("autoLoginDone", "1");
+
+      // avoid redirect loop: only navigate if we're not already on home
+      if (window.location.pathname !== "/") {
+        window.location.href = "/";
+      } else {
+        // if already at '/', just reload once to ensure UI picks up token
+        window.location.reload();
+      }
+    } else {
+      console.warn("Auto login failed:", data);
+      // optional: remove any half-set token
+      localStorage.removeItem("token");
+      sessionStorage.removeItem("autoLoginDone");
+    }
+  } catch (err) {
+    console.error("Auto-login error:", err);
+  }
+})();
+</script>-->
+
+
+
+
+
+
 	</head>
 	<body class="is-preload">
 		<!-- Wrapper -->
@@ -148,6 +233,7 @@
 										<div class="content">
 											{% if current_user.is_authenticated: %}
 											<object><a href="{{ url_for('outstanding_task_report') }}">Outstanding Tasks</a></object><br>
+											<object><a href="{{ url_for('get_tasks_by_assignee_report') }}">Tasks by Assignee</a></object><br>
 											{% endif %}
 										</div>
 									</a>
@@ -171,6 +257,7 @@
 			</div>
 
 		<!-- Scripts -->
+
 			<script src="static/assets/js/jquery.min.js"></script>
 			<script src="static/assets/js/browser.min.js"></script>
 			<script src="static/assets/js/breakpoints.min.js"></script>

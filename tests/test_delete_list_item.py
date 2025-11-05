@@ -23,7 +23,7 @@ def shared_data():
 
 @given('The User is on dashboard page')
 def user_on_dashboard_page(browser_instance, shared_data):
-    # state = "auth_state.json" if os.path.exists("auth_state.json") else None
+    # state = "auth_state_test.json" if os.path.exists("auth_state_test.json") else None
     # if state:
     dashboard_page = DashboardPage(browser_instance)
     # else:

@@ -31,17 +31,20 @@ def test_login_api():
 
 
 @given('The user logs in via API')
-def login_api(shared_data):
-    api_helper = APIHelper()
-    login_api_response = api_helper.login(
-        data={'email': os.environ.get('USER_EMAIL'), 'password': os.environ.get('PASS')})
-    logger.info(f'Login API response: {login_api_response}')
-    shared_data['login_api_response'] = login_api_response
+def login_api(browser_instance_api, shared_data):
+    dashboard_page = DashboardPage(browser_instance_api)
+
+
+    time.sleep(5)
+
 
 
 @when('The API response token is received')
 def get_login_api_response(shared_data):
     pass
+
+
+
 
 
 @then('The user bypasses the login screen')

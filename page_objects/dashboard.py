@@ -1,3 +1,4 @@
+import os
 import time
 
 from playwright.sync_api import expect
@@ -10,7 +11,9 @@ from unittest.mock import patch
 class DashboardPage:
 
     def __init__(self, page):
+
         self.page = page
+
 
     def navigate_to_login_page(self):
         from .login import LoginPage
@@ -19,12 +22,15 @@ class DashboardPage:
         self.page.locator('a:has-text("Log In")').click()
         return login_page
 
-    def verify_dashboard(self):
+    def verify_dashboard(self,env):
         self.page.locator('.tooltip').first.hover()
         # Get the tooltip text
         user = self.page.locator('.tooltip .tooltiptext').nth(0).inner_text()
         expect(self.page.locator('.tooltip .tooltiptext').nth(0)).not_to_be_empty()
-        self.page.context.storage_state(path="auth_state.json")
+        if env == 'test':
+            self.page.context.storage_state(path="auth_state_test.json")
+        else:
+            self.page.context.storage_state(path="auth_state_prod.json")
         return user
 
     def add_new_list(self):
@@ -148,3 +154,10 @@ class DashboardPage:
 
     def reload_page(self):
         self.page.reload()
+
+
+
+
+
+
+

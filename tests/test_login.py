@@ -61,15 +61,15 @@ def login_to_portal_single_user(shared_data):
 
 
 @then('Successful login result is achieved single user')
-def validate_login_single_user(shared_data):
+def validate_login_single_user(shared_data, db_connection,env):
     dashboard_page = shared_data['dashboard_page']
-    logged_in_user = dashboard_page.verify_dashboard()
+    logged_in_user = dashboard_page.verify_dashboard(env)
     logger.info(f'logged in user: {logged_in_user}')
     user_name = str(logged_in_user).split('/')[0]
     user_email = str(logged_in_user).split('/')[1]
     logger.info(user_name)
     logger.info(user_email)
-    user_dao = User_DAO(db_connect.DBConnect())
+    user_dao = User_DAO(db_connection)
     user = user_dao.get_user_by_email(user_email)
     logger.info(user)
     assert len(user_name) > 0
@@ -163,15 +163,14 @@ def login_to_portal_mult_context(shared_data):
 
 
 @then('Successful login result is achieved mult context')
-def validate_login_mult_context(shared_data):
-    con = db_connect.DBConnect()
+def validate_login_mult_context(shared_data, db_connection, env):
 
     dashboard_page_user_1 = shared_data['dashboard_page_user_1']
-    user_1 = dashboard_page_user_1.verify_dashboard()
+    user_1 = dashboard_page_user_1.verify_dashboard(env)
     user_1_name = str(user_1).split('/')[0]
     user_1_email = str(user_1).split('/')[1]
     logger.info(user_1)
-    user_dao = User_DAO(db_connect.DBConnect())
+    user_dao = User_DAO(db_connection)
     user = user_dao.get_user_by_email(user_1_email)
     logger.info(user)
     assert len(user_1_name) > 0
@@ -181,11 +180,11 @@ def validate_login_mult_context(shared_data):
     logger.info(f'User {user_1_name} : {user[1]} successfully logged in!')
 
     dashboard_page_user_2 = shared_data['dashboard_page_user_2']
-    user_2 = dashboard_page_user_2.verify_dashboard()
+    user_2 = dashboard_page_user_2.verify_dashboard(env)
     logger.info(user_2)
     user_2_name = str(user_2).split('/')[0]
     user_2_email = str(user_2).split('/')[1]
-    user_dao = User_DAO(db_connect.DBConnect())
+    user_dao = User_DAO(db_connection)
     user = user_dao.get_user_by_email(user_2_email)
     logger.info(user)
     assert len(user_2_name) > 0
@@ -194,4 +193,4 @@ def validate_login_mult_context(shared_data):
     assert user[1] == user_2_email
     logger.info(f'User {user_2_name} : {user[2]} successfully logged in!')
 
-    con.close()
+

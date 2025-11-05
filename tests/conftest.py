@@ -4,14 +4,13 @@ import logging
 import time
 from pathlib import Path
 
+import psycopg
 import pytest
 import psutil
 
-# load .env file variables
+# load prod.env file variables
 from dotenv import load_dotenv
 from playwright.sync_api import sync_playwright, TimeoutError
-
-load_dotenv()
 
 # set up logging
 # Configure once (e.g., in conftest.py)
@@ -46,8 +45,42 @@ def pytest_addoption(parser):
     )
 
     parser.addoption(
-        "--url_start", action="store", default=os.environ.get('BASE_URL'), help="starting url"
+        "--url_start", action="store", default="test", help="starting url"
     )
+
+    parser.addoption(
+        "--env", action="store", default="test", help="Environment to run tests against")
+
+
+@pytest.fixture(scope="session")
+def env(request):
+    env_name = request.config.getoption("--env")
+    # Load the corresponding .env file
+    load_dotenv(f"{env_name}.env")
+    return env_name
+
+@pytest.fixture(scope="session")
+def url_start(env):  # env fixture ensures .env is loaded first
+    return os.environ.get("BASE_URL")
+
+@pytest.fixture(scope="session")
+def db_connection(env):
+    if env == 'test':
+        conn = psycopg.connect(
+            dbname=os.environ.get('DB_NAME'),
+            user=os.environ.get('DB_USER'),
+            password=os.environ.get('DB_PASSWORD'),
+            host=os.environ.get('DB_HOST'),
+            port=os.environ.get('DB_PORT')
+        )
+    else:
+        conn = psycopg.connect(os.environ.get('DB_HOST'))
+
+    yield conn
+    conn.close()
+
+
+load_dotenv(f"{env}.env")
 
 
 @pytest.fixture(scope='session')
@@ -57,39 +90,61 @@ def user_credentials(request):
 
 # call this fixture for login tests
 @pytest.fixture
-def clean_auth_state_before_login():
-    file_path = Path(__file__).parent.parent / "auth_state.json"
-    if os.path.exists(file_path):
-        os.remove(file_path)
-        logger.info("Deleted auth_state.json before login test.")
-
-
+def clean_auth_state_before_login(env):
+    if env == 'test':
+        file_path = Path(__file__).parent.parent / "auth_state_test.json"
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            logger.info("Deleted auth_state_test.json before login test.")
+    else:
+        file_path = Path(__file__).parent.parent / "auth_state_prod.json"
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            logger.info("Deleted auth_state_prod.json before login test.")
 
 
 # call this fixture to set auth state to bypass login
 @pytest.fixture
-def set_auth_state():
+def set_auth_state(env):
     # Path to the file to copy
 
-    src = Path(__file__).parent.parent / "utils" / "auth_state.json"
+    if env == 'test':
 
+        src = Path(__file__).parent.parent / "utils" / "auth_state_test.json"
 
-    # Destination in project root
+        # Destination in project root
 
-    dst = Path(__file__).parent.parent / "auth_state.json"
+        dst = Path(__file__).parent.parent / "auth_state_test.json"
 
-    logger.info('auth_state.json does not exist')
+        logger.info('auth_state_test.json does not exist')
 
-    if not dst.exists():
-        shutil.copy(src, dst)
-        logger.info(f"Copied {src} → {dst}")
-        logger.info("Set the auth_state.json before login test.")
-    else:
-        logger.info(f"File already exists at {dst}")
+        if not dst.exists():
+            shutil.copy(src, dst)
+            logger.info(f"Copied {src} → {dst}")
+            logger.info("Set the auth_state_test.json before login test.")
+        else:
+            logger.info(f"File already exists at {dst}")
 
         # You can return the path if needed
-    return dst
+        return dst
+    else:
+        src = Path(__file__).parent.parent / "utils" / "auth_state_prod.json"
 
+        # Destination in project root
+
+        dst = Path(__file__).parent.parent / "auth_state_prod.json"
+
+        logger.info('auth_state_prod.json does not exist')
+
+        if not dst.exists():
+            shutil.copy(src, dst)
+            logger.info(f"Copied {src} → {dst}")
+            logger.info("Set the auth_state_prod.json before login test.")
+        else:
+            logger.info(f"File already exists at {dst}")
+
+        # You can return the path if needed
+        return dst
 
 
 def safe_goto(page, url, retries=3, delay=5):
@@ -105,16 +160,18 @@ def safe_goto(page, url, retries=3, delay=5):
 
 # main tests fixture that yields page object and then closes context and browser after yield as part of teardown
 @pytest.fixture(scope='function')
-def browser_instance(request):
+def browser_instance(request, url_start):
     browser_name = request.config.getoption('browser_name')
-    url_start = request.config.getoption('url_start')
+    #url_start = request.config.getoption('url_start')
+    url_start = url_start
+
     with sync_playwright() as p:
         if browser_name == 'chrome':
             browser = p.chromium.launch(headless=False, timeout=120000)
         elif browser_name == 'firefox':
             browser = p.firefox.launch(headless=False)
 
-        state = "auth_state.json" if os.path.exists("auth_state.json") else None
+        state = "auth_state_test.json" if os.path.exists("auth_state_test.json") else None
 
         if state:
             context = browser.new_context(storage_state=state)
@@ -122,17 +179,18 @@ def browser_instance(request):
             context = browser.new_context()
 
         page = context.new_page()
-        #page.goto(url_start)
-        safe_goto(page,url_start)
+
+        safe_goto(page, url_start)
         try:
+
             yield page
         finally:
             context.close()
             browser.close()
-            file_path = Path(__file__).parent.parent / "auth_state.json"
+            file_path = Path(__file__).parent.parent / "auth_state_test.json"
             if os.path.exists(file_path):
                 os.remove(file_path)
-                logger.info("Deleted auth_state.json.")
+                logger.info("Deleted auth_state_test.json.")
 
 
 @pytest.fixture(scope='function')
@@ -145,7 +203,7 @@ def browser_instance_mult_context(request):
         elif browser_name == 'firefox':
             browser = p.firefox.launch(headless=False)
 
-        state = "auth_state.json" if os.path.exists("auth_state.json") else None
+        state = "auth_state_test.json" if os.path.exists("auth_state_test.json") else None
         if state:
             context_user_1 = browser.new_context(storage_state=state)
             context_user_2 = browser.new_context(storage_state=state)
@@ -161,7 +219,7 @@ def browser_instance_mult_context(request):
         try:
             yield page_user_1, page_user_2
         finally:
-        # ensures closure even if test fails
+            # ensures closure even if test fails
             for ctx in (context_user_1, context_user_2):
                 try:
                     ctx.close()
@@ -171,3 +229,43 @@ def browser_instance_mult_context(request):
                 browser.close()
             except Exception:
                 pass
+
+
+@pytest.fixture(scope='function')
+def browser_instance_api(request):
+    browser_name_api = request.config.getoption('browser_name')
+    url_start_api = request.config.getoption('url_start')
+    with sync_playwright() as p:
+        if browser_name_api == 'chrome':
+            browser_api = p.chromium.launch(headless=False, timeout=120000)
+        elif browser_name_api == 'firefox':
+            browser_api = p.firefox.launch(headless=False)
+
+        state_api = "auth_state_test.json" if os.path.exists("auth_state_test.json") else None
+
+        if state_api:
+            context_api = browser_api.new_context(storage_state=state_api)
+        else:
+            context_api = browser_api.new_context()
+
+        page_api = context_api.new_page()
+
+        from helpers.api_helper import APIHelper
+        api_helper = APIHelper()
+        api_helper.login(data={'email': os.environ.get('USER_EMAIL_TEST'),
+                               'password': os.environ.get('PASS_TEST')},
+                         params={'mock': 1})
+        # logger.info(f'Login API response: {login_api_response}')
+
+        safe_goto(page_api, url_start_api)
+
+        try:
+
+            yield page_api
+        finally:
+            context_api.close()
+            browser_api.close()
+            # file_path = Path(__file__).parent.parent / "auth_state_test.json"
+            # if os.path.exists(file_path):
+            #     os.remove(file_path)
+            #     logger.info("Deleted auth_state_test.json.")
