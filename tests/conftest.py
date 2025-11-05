@@ -160,7 +160,7 @@ def safe_goto(page, url, retries=3, delay=5):
 
 # main tests fixture that yields page object and then closes context and browser after yield as part of teardown
 @pytest.fixture(scope='function')
-def browser_instance(request, url_start):
+def browser_instance(request, url_start, env):
     browser_name = request.config.getoption('browser_name')
     #url_start = request.config.getoption('url_start')
     url_start = url_start
@@ -171,7 +171,12 @@ def browser_instance(request, url_start):
         elif browser_name == 'firefox':
             browser = p.firefox.launch(headless=False)
 
-        state = "auth_state_test.json" if os.path.exists("auth_state_test.json") else None
+        if env == 'test':
+
+            state = "auth_state_test.json" if os.path.exists("auth_state_test.json") else None
+
+        else:
+            state = "auth_state_prod.json" if os.path.exists("auth_state_prod.json") else None
 
         if state:
             context = browser.new_context(storage_state=state)
@@ -187,10 +192,16 @@ def browser_instance(request, url_start):
         finally:
             context.close()
             browser.close()
-            file_path = Path(__file__).parent.parent / "auth_state_test.json"
-            if os.path.exists(file_path):
-                os.remove(file_path)
-                logger.info("Deleted auth_state_test.json.")
+            if env == 'test':
+                file_path = Path(__file__).parent.parent / "auth_state_test.json"
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    logger.info("Deleted auth_state_test.json.")
+            else:
+                file_path = Path(__file__).parent.parent / "auth_state_prod.json"
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    logger.info("Deleted auth_state_prod.json.")
 
 
 @pytest.fixture(scope='function')
