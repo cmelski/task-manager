@@ -192,16 +192,16 @@ def browser_instance(request, url_start, env):
         finally:
             context.close()
             browser.close()
-            # if env == 'test':
-            #     file_path = Path(__file__).parent.parent / "auth_state_test.json"
-            #     if os.path.exists(file_path):
-            #         os.remove(file_path)
-            #         logger.info("Deleted auth_state_test.json.")
-            # else:
-            #     file_path = Path(__file__).parent.parent / "auth_state_prod.json"
-            #     if os.path.exists(file_path):
-            #         os.remove(file_path)
-            #         logger.info("Deleted auth_state_prod.json.")
+            if env == 'test':
+                file_path = Path(__file__).parent.parent / "auth_state_test.json"
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    logger.info("Deleted auth_state_test.json.")
+            else:
+                file_path = Path(__file__).parent.parent / "auth_state_prod.json"
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    logger.info("Deleted auth_state_prod.json.")
 
 
 @pytest.fixture(scope='function')
