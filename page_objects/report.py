@@ -11,3 +11,7 @@ class ReportPage:
 
     def verify_no_outstanding_tasks_message(self):
         expect(self.page.get_by_text('There are no outstanding tasks')).to_be_visible()
+
+    def verify_tasks_by_assignee_report(self):
+        expect(self.page.get_by_text('Tasks by Assignee Report')).to_be_visible()
+

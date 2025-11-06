@@ -1173,21 +1173,29 @@ def get_tasks_by_assignee_report():
     """
 
     # 4️⃣ Execute the dynamic query
-    con.cursor.execute(query)
-    rows = con.cursor.fetchall()
+    try:
+        con.cursor.execute(query)
+        rows = con.cursor.fetchall()
+    except:
+        rows = []
 
-    for row in rows:
-        print(row)
+    print(f'Rows length: {len(rows)}')
+    if len(rows) > 0:
 
-    totals = []
+        for row in rows:
+            print(row)
 
-    # Loop through each assignee column index (skip first column = task name)
-    for col_idx in range(1, len(rows[0])):
-        count = sum(1 for row in rows if row[col_idx] == '✔')
-        totals.append(count)
+        totals = []
 
-    totals_row = ('Totals', *totals)
-    rows.append(totals_row)
+        # Loop through each assignee column index (skip first column = task name)
+        for col_idx in range(1, len(rows[0])):
+            count = sum(1 for row in rows if row[col_idx] == '✔')
+            totals.append(count)
+
+        totals_row = ('Totals', *totals)
+        rows.append(totals_row)
+    else:
+        flash("There are no tasks by assignee.")
 
     return render_template("tasks_by_assignee.html", rows=rows, assignees=assignees)
 

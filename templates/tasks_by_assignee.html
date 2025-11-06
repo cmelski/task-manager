@@ -110,7 +110,9 @@
 
            					<thead>
             				<tr>
+								{% if rows|length > 0 %}
                 		<th>Task</th>
+								{% endif %}
                 {% for assignee in assignees %}
                     <th>{{ assignee }}</th>
                 {% endfor %}

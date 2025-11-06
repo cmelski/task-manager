@@ -155,6 +155,12 @@ class DashboardPage:
     def reload_page(self):
         self.page.reload()
 
+    def select_tasks_by_assignee_report(self):
+        from .report import ReportPage
+        report_page = ReportPage(self.page)
+        self.page.locator('a [href="/tasks_by_assignee"]').click()
+        return report_page
+
 
 
 

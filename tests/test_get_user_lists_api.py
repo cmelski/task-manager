@@ -55,13 +55,13 @@ def user_on_dashboard_page(browser_instance, shared_data):
 
 
 @when('The get user lists API GET request is made')
-def get_user_lists_api(shared_data):
+def get_user_lists_api(shared_data, env, db_connection):
     dashboard_page = shared_data['dashboard_page']
-    logged_in_user = dashboard_page.verify_dashboard()
+    logged_in_user = dashboard_page.verify_dashboard(env)
     logger.info(f'logged in user: {logged_in_user}')
     user_email = str(logged_in_user).split('/')[1]
     logger.info(user_email)
-    user_dao = User_DAO(db_connect.DBConnect())
+    user_dao = User_DAO(db_connection)
     user = user_dao.get_user_by_email(user_email)
     logger.info(user)
     user_id = user[0]
@@ -107,13 +107,13 @@ def user_on_dashboard_page(browser_instance, shared_data):
 
 
 @when('The get user lists mock API API response is triggered')
-def get_user_lists_api_mock(browser_instance, shared_data):
+def get_user_lists_api_mock(browser_instance, shared_data, env, db_connection):
     dashboard_page = shared_data['dashboard_page']
-    logged_in_user = dashboard_page.verify_dashboard()
+    logged_in_user = dashboard_page.verify_dashboard(env)
     logger.info(f'logged in user: {logged_in_user}')
     user_email = str(logged_in_user).split('/')[1]
     logger.info(user_email)
-    user_dao = User_DAO(db_connect.DBConnect())
+    user_dao = User_DAO(db_connection)
     user = user_dao.get_user_by_email(user_email)
     logger.info(user)
     user_id = user[0]
