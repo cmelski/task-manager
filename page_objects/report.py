@@ -18,12 +18,12 @@ class ReportPage:
             return
 
         count_totals = 0
-        count_checks = self.page.locator('.check').count()
+        count_checks = self.page.locator('button').count()
         row = self.page.locator("tr", has=self.page.locator("td:first-child", has_text="Totals"))
         cells = row.locator('td').all()
         for cell in cells:
             if cell.inner_text().strip().isdigit():
-                count_totals += 1
+                count_totals += int(cell.inner_text().strip())
         logger.info(f'Count checks: {count_checks}')
         logger.info(f'Count totals: {count_totals}')
         assert count_checks == count_totals
@@ -40,7 +40,13 @@ class ReportPage:
             else:
                 gui_results.append(
                     (headers_sliced[i].inner_text().strip(), int(row_totals_sliced[i].inner_text().strip())))
-        logger.info(f'GUI totals: {gui_results}')
+        logger.info(f'GUI totals: {sorted(gui_results)}')
 
-        for result in db_result:
-            assert result in gui_results
+        sorted_gui_results = sorted(gui_results)
+        sorted_db_results = sorted(db_result)
+
+        #for result in db_result:
+         #   assert result in gui_results
+
+        for i in range(len(sorted_db_results)):
+            assert sorted_db_results[i] == sorted_gui_results[i]

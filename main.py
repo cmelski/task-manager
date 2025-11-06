@@ -1062,7 +1062,7 @@ def login_api_test():
         if mock == '1':
             print('Reached here')
 
-            #return redirect(url_for('home'))
+            # return redirect(url_for('home'))
         else:
 
             return jsonify({
@@ -1091,91 +1091,123 @@ def verify_token():
     except jwt.InvalidTokenError:
         return jsonify({"error": "Invalid token"}), 401
 
+
 @app.route('/tasks_by_assignee')
 @logged_in_only
 def get_tasks_by_assignee_report():
     con = DBConnect()
 
-    # 1️⃣ Get distinct assignees
     # con.cursor.execute("""
-    #     SELECT DISTINCT assignee
-    #     FROM items a
-    #     JOIN list b ON a.list_id = b.id
-    #     JOIN users c ON b.user_id = c.id
-    #     WHERE c.id = %s
-    #     ORDER BY assignee;
+    # SELECT DISTINCT COALESCE(NULLIF(a.assignee, ''), 'Unassigned') AS assignee
+    # FROM items a
+    # JOIN list b ON a.list_id = b.id
+    # JOIN users c ON b.user_id = c.id
+    # WHERE a.completed = false
+    # AND c.id = %s
+    # ORDER BY assignee;
     # """, (current_user.id,))
-
-    con.cursor.execute("""
-    SELECT DISTINCT COALESCE(NULLIF(a.assignee, ''), 'Unassigned') AS assignee
-    FROM items a
-    JOIN list b ON a.list_id = b.id
-    JOIN users c ON b.user_id = c.id
-    WHERE a.completed = false
-    AND c.id = %s
-    ORDER BY assignee;
-    """, (current_user.id,))
-
-    assignees = [r[0] for r in con.cursor.fetchall()]
-
-    # 2️⃣ Build column definitions
-    columns_sql = ", ".join('"{}" text'.format(a or "Unassigned") for a in assignees)
-
-
-    # 3️⃣ Build dynamic SQL for crosstab
+    #
+    # assignees = [r[0] for r in con.cursor.fetchall()]
+    #
+    # # 2️⃣ Build column definitions
+    # columns_sql = ", ".join('"{}" text'.format(a or "Unassigned") for a in assignees)
+    #
     # query = f"""
     # SELECT *
     # FROM crosstab(
-    #     $$
-    #     SELECT a.task, a.assignee, '✔'
-    #     FROM items a
-    #     JOIN list b ON a.list_id = b.id
-    #     JOIN users c ON b.user_id = c.id
-    #     WHERE c.id = {current_user.id}
-    #     ORDER BY 1, 2
-    #     $$,
-    #     $$
-    #     SELECT DISTINCT a.assignee
-    #     FROM items a
-    #     JOIN list b ON a.list_id = b.id
-    #     JOIN users c ON b.user_id = c.id
-    #     WHERE c.id = {current_user.id}
-    #     ORDER BY assignee
-    #     $$
+    # $$
+    # SELECT
+    #     a.task,
+    #     COALESCE(NULLIF(a.assignee, ''), 'Unassigned') AS assignee,
+    #     '✔'
+    # FROM items a
+    # JOIN list b ON a.list_id = b.id
+    # JOIN users c ON b.user_id = c.id
+    # WHERE a.completed = false
+    # AND c.id = {current_user.id}
+    # ORDER BY 1,2
+    # $$,
+    # $$
+    # SELECT DISTINCT COALESCE(NULLIF(a.assignee, ''), 'Unassigned') AS assignee
+    # FROM items a
+    # JOIN list b ON a.list_id = b.id
+    # JOIN users c ON b.user_id = c.id
+    # WHERE a.completed = false
+    # AND c.id = {current_user.id}
+    # ORDER BY assignee ASC
+    # $$
     # ) AS ct(task text, {columns_sql});
+    #
     # """
+
+    # 1️⃣ Get all distinct assignees
+    # 1) get assignees (normalized)
+    # 1) get assignees (normalized)
+    con.cursor.execute("""
+        SELECT DISTINCT COALESCE(NULLIF(a.assignee, ''), 'Unassigned') AS assignee
+        FROM items a
+        JOIN list b ON a.list_id = b.id
+        JOIN users c ON b.user_id = c.id
+        WHERE a.completed = false
+          AND c.id = %s
+        ORDER BY assignee;
+    """, (current_user.id,))
+    assignees = [r[0] for r in con.cursor.fetchall()]
+
+    # 2) build column defns for AS ct(...)
+    columns_sql = ", ".join('"{}" text'.format(a or "Unassigned") for a in assignees)
+
+    # 2b) build explicit select list for assignee columns (ct."Name1", ct."Name2", ...)
+    select_assignee_cols = ", ".join('ct."{}"'.format(a or "Unassigned") for a in assignees)
+
+    # 3) crosstab query that pivots by item id, but outer SELECT picks only the assignee columns (no ct.item_key)
     query = f"""
-    SELECT *
+    SELECT
+        i.task,
+        i.list_id,
+        i.id AS item_id,
+        {select_assignee_cols}
     FROM crosstab(
-    $$
-    SELECT 
-        a.task,
-        COALESCE(NULLIF(a.assignee, ''), 'Unassigned') AS assignee,
-        '✔'
-    FROM items a
-    JOIN list b ON a.list_id = b.id
-    JOIN users c ON b.user_id = c.id
-    WHERE a.completed = false
-    AND c.id = {current_user.id}
-    ORDER BY 1,2
-    $$,
-    $$
-    SELECT DISTINCT COALESCE(NULLIF(a.assignee, ''), 'Unassigned') AS assignee
-    FROM items a
-    JOIN list b ON a.list_id = b.id
-    JOIN users c ON b.user_id = c.id
-    WHERE a.completed = false
-    AND c.id = {current_user.id}
-    ORDER BY assignee ASC
-    $$
-    ) AS ct(task text, {columns_sql});
-    
+        $$
+        SELECT 
+            a.id::text AS item_key,
+            COALESCE(NULLIF(a.assignee, ''), 'Unassigned') AS assignee,
+            '✔'
+        FROM items a
+        JOIN list b     ON a.list_id = b.id
+        JOIN users c    ON b.user_id = c.id
+        WHERE a.completed = false
+          AND c.id = {current_user.id}
+        ORDER BY 1,2
+        $$,
+        $$
+        SELECT DISTINCT COALESCE(NULLIF(a.assignee, ''), 'Unassigned') AS assignee
+        FROM items a
+        JOIN list b ON a.list_id = b.id
+        JOIN users c ON b.user_id = c.id
+        WHERE a.completed = false
+          AND c.id = {current_user.id}
+        ORDER BY assignee ASC
+        $$
+    ) AS ct(item_key text, {columns_sql})
+    JOIN items i ON i.id::text = ct.item_key
+    WHERE i.completed = false
+      AND EXISTS (
+          SELECT 1 FROM list l WHERE l.id = i.list_id AND l.user_id = {current_user.id}
+      );
     """
+
+    con.cursor.execute(query)
+    rows = con.cursor.fetchall()
 
     # 4️⃣ Execute the dynamic query
     try:
         con.cursor.execute(query)
         rows = con.cursor.fetchall()
+
+        # import pandas as pd
+        # df = pd.DataFrame(rows, columns=["task", "list_id", "item_id"] + assignees)
+        # print(df)
     except:
         rows = []
 
@@ -1194,10 +1226,32 @@ def get_tasks_by_assignee_report():
 
         totals_row = ('Totals', *totals)
         rows.append(totals_row)
+
+
     else:
         flash("There are no tasks by assignee.")
 
     return render_template("tasks_by_assignee.html", rows=rows, assignees=assignees)
+
+@app.route("/<int:list_item_id>/<int:list_id>", methods=["GET", "POST"])
+@logged_in_only
+def update_task_to_complete(list_item_id, list_id):
+    print(list_item_id)
+    con = DBConnect()
+    con.cursor.execute("""
+        UPDATE items AS a
+        SET completed = TRUE
+        FROM list AS l
+        JOIN users AS u ON l.user_id = u.id
+        WHERE a.list_id = l.id
+          AND a.id = %s
+          AND a.list_id = %s
+          AND u.id = %s;
+    """, (list_item_id, list_id,f'{current_user.id}', ))
+    con.connection.commit()
+    con.cursor.close()
+
+    return redirect(url_for("get_tasks_by_assignee_report"))
 
 
 if __name__ == "__main__":
