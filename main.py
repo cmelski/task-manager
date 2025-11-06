@@ -1166,7 +1166,7 @@ def get_tasks_by_assignee_report():
     JOIN users c ON b.user_id = c.id
     WHERE a.completed = false
     AND c.id = {current_user.id}
-    ORDER BY assignee
+    ORDER BY assignee ASC
     $$
     ) AS ct(task text, {columns_sql});
     

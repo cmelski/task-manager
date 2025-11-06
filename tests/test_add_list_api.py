@@ -8,7 +8,7 @@ import time
 from dao.user_dao import User_DAO
 from helpers.api_helper import APIHelper
 from tests.conftest import logger
-from utils import db_connect, utilities
+from utils import utilities
 
 
 
@@ -51,7 +51,7 @@ def user_on_dashboard_page(browser_instance, shared_data):
 
 
 @when('The add list API POST request is made and page is reloaded')
-def add_list_api(shared_data, env, db_connection):
+def add_list_api(shared_data, env, db_connection, url_start):
     dashboard_page = shared_data['dashboard_page']
     logged_in_user = dashboard_page.verify_dashboard(env)
     logger.info(f'logged in user: {logged_in_user}')
@@ -62,7 +62,7 @@ def add_list_api(shared_data, env, db_connection):
     logger.info(user)
     user_id = user[0]
     api_helper = APIHelper()
-    add_list_api_response = api_helper.add_list(data={'user_id': user_id, 'name': utilities.generate_random_string() + 'List'})
+    add_list_api_response = api_helper.add_list(url_start, data={'user_id': user_id, 'name': utilities.generate_random_string() + 'List'})
     logger.info(f'Add List API response: {add_list_api_response}')
     shared_data['add_list_api'] = add_list_api_response
 

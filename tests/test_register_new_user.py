@@ -61,13 +61,13 @@ def submit_registration_details(shared_data):
 
 
 @then('Successful registration is achieved')
-def validate_successful_registration(shared_data):
+def validate_successful_registration(shared_data, env, db_connection):
     dashboard_page = shared_data['dashboard_page']
-    logged_in_user = dashboard_page.verify_dashboard()
+    logged_in_user = dashboard_page.verify_dashboard(env)
     logger.info(logged_in_user)
     user_name = str(logged_in_user).split('/')[0]
     user_email = str(logged_in_user).split('/')[1]
-    user_dao = User_DAO(db_connect.DBConnect())
+    user_dao = User_DAO(db_connection)
     user = user_dao.get_user_by_email(user_email)
     logger.info(user)
     assert len(user_name) > 0
@@ -75,7 +75,7 @@ def validate_successful_registration(shared_data):
     logger.info(f'User {user_name} : {user[1]} successfully registered and logged in!')
     user_dao.delete_user_by_user_email(user[1])
     logger.info(f'New user {user_name} successfully deleted')
-    user_dao.connect.cursor.close()
+
 
 
 

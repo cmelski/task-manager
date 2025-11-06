@@ -16,9 +16,9 @@ orders_payload = {
 
 class APIBase:
 
-    def __init__(self):
-        # self.base_url = os.environ.get('BASE_URL')
-        self.base_url = 'http://127.0.0.1:5002/'
+    def __init__(self, url_start):
+
+        self.base_url = url_start
 
     def get(self, endpoint=None, params=None, headers=None, data=None, ):
         response = requests.get(url=self.base_url + endpoint, params=params)
@@ -32,10 +32,10 @@ class APIBase:
     def post(self, endpoint=None, data=None, params=None):
         # headers = {'Content-Type': 'application/json'}
         logger.info(f'Params: {params}')
-        requests.post(url=self.base_url + endpoint, json=data, params=params)
+        response = requests.post(url=self.base_url + endpoint, json=data, params=params)
         logger.info(f'{self.base_url + endpoint}')
-        # response.raise_for_status()
-        # assert response.ok
-        # response_message = response.json()
-        # logger.info(f'Response from API: {response_message}')
-        #return response_message
+        response.raise_for_status()
+        assert response.ok
+        response_message = response.json()
+        logger.info(f'Response from API: {response_message}')
+        return response_message

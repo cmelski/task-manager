@@ -2,6 +2,8 @@ import json
 import os
 import pytest
 from pytest_bdd import given, when, then, parsers, scenarios, scenario
+
+from dao.user_dao import User_DAO
 from page_objects.dashboard import DashboardPage
 import time
 
@@ -42,14 +44,27 @@ def user_on_dashboard_page(browser_instance, shared_data):
 
 
 @when('Navigate to Tasks by Assignee report')
-def click_tasks_by_assignee_report(shared_data):
+def click_tasks_by_assignee_report(shared_data, env, db_connection):
     dashboard_page = shared_data['dashboard_page']
+    logged_in_user = dashboard_page.verify_dashboard(env)
+    logger.info(f'logged in user: {logged_in_user}')
+    user_email = str(logged_in_user).split('/')[1]
+    logger.info(user_email)
+    user_dao = User_DAO(db_connection)
+    user = user_dao.get_user_by_email(user_email)
+    logger.info(user)
+    user_id = user[0]
+    shared_data['user_id'] = user_id
     report_page = dashboard_page.select_tasks_by_assignee_report()
     shared_data['report_page'] = report_page
     time.sleep(2)
 
-
 @then('Tasks by Assignee report is displayed and correctly shows tasks for the user that are not completed')
-def validate_tasks_by_assignee_report(shared_data):
+def validate_tasks_by_assignee_report(shared_data, db_connection):
+    user_dao = User_DAO(db_connection)
+    tasks_by_assignee_db_result = user_dao.get_tasks_by_assignee_not_completed(shared_data['user_id'])
+    logger.info(f'DB result: {tasks_by_assignee_db_result}')
     report_page = shared_data['report_page']
-    report_page.verify_tasks_by_assignee_report()
+    report_page.verify_tasks_by_assignee_report(tasks_by_assignee_db_result)
+
+
