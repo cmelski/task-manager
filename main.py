@@ -408,12 +408,12 @@ def get_user_lists_api():
 @app.route('/')
 def home():
     if current_user.is_authenticated:
-        # con = DBConnect()
-        # con.cursor.execute(f"SELECT * from list where list.user_id = '{current_user.id}';")
-        # lists = con.cursor.fetchall()
-        # print(lists)
-        # con.cursor.close()
-        lists = get_user_lists()
+        con = DBConnect()
+        con.cursor.execute(f"SELECT * from list where list.user_id = '{current_user.id}';")
+        lists = con.cursor.fetchall()
+        print(lists)
+        con.cursor.close()
+        #lists = get_user_lists()
 
         return render_template("index.html", all_lists=lists)
     else:
@@ -1337,5 +1337,5 @@ def create_app():
 
 
 if __name__ == "__main__":
-    app = create_app()
+    #app = create_app()
     app.run(debug=app.config.get("DEBUG", False), port=5002)
