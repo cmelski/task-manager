@@ -363,11 +363,9 @@ def register_user():
     return render_template("register.html", form=register_form, current_user=current_user)
 
 
-def get_user_lists(endpoint=None, params=None, headers=None, data=None, ):
-    app_instance = create_app()
+def get_user_lists(base_url):
 
-    with app_instance.app_context():
-        base_url = current_app.config["BASE_URL"]
+    with app.app_context():
         endpoint = '/api/get_user_lists'
         params = {'user_id': current_user.id}
         response = requests.get(url=base_url + endpoint, params=params)
@@ -408,12 +406,14 @@ def get_user_lists_api():
 @app.route('/')
 def home():
     if current_user.is_authenticated:
-        con = DBConnect()
-        con.cursor.execute(f"SELECT * from list where list.user_id = '{current_user.id}';")
-        lists = con.cursor.fetchall()
-        print(lists)
-        con.cursor.close()
-        #lists = get_user_lists()
+        # con = DBConnect()
+        # con.cursor.execute(f"SELECT * from list where list.user_id = '{current_user.id}';")
+        # lists = con.cursor.fetchall()
+        # print(lists)
+        # con.cursor.close()
+        #get base url (for test or prod)
+        base_url = request.url_root
+        lists = get_user_lists(base_url)
 
         return render_template("index.html", all_lists=lists)
     else:
