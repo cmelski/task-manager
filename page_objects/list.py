@@ -145,91 +145,89 @@ class ListPage:
         list_name = self.page.wait_for_selector('input[name="list_name"]', state='visible')
         list_name_original = list_name.input_value()
 
-        try:
-            rows_original = self.page.wait_for_selector(
-                '#task_table > tbody > tr',
-                state='visible', timeout=500)
-            rows_original = self.page.locator('#task_table > tbody > tr')
 
-            if rows_original.count() > 0:
-                for row in rows_original.all():
-                    cells = row.locator('td').all()
-                    for cell in cells:
-                        checkbox = cell.locator("input[type='checkbox']")
-                        text_area = cell.locator('textarea')
-                        text_input = cell.locator('input:not([type="checkbox"])')
+            # rows_original = self.page.wait_for_selector(
+            #     '#task_table > tbody > tr',
+            #     state='visible', timeout=500)
+        rows_original = self.page.locator('#task_table > tbody > tr:has(td textarea, td input)')
 
-                        if checkbox.count() > 0:
-                            value = checkbox.first.is_checked()
-                        elif text_area.count() > 0:
-                            value = text_area.first.input_value()
-                        elif text_input.count() > 0:
-                            value = text_input.first.input_value()
-                        else:
-                            value = cell.inner_text().strip()
+        row_original_count = rows_original.count()
+        logger.info(f'Original count: {row_original_count}')
 
-                        list_items_original.append(value)
+        for i in range(0, row_original_count):  # start at 1, skip index 0
+            row = rows_original.nth(i)
+            cells = row.locator('td:has(textarea, input)').all()
+            for cell in cells:
+                checkbox = cell.locator("input[type='checkbox']")
+                text_area = cell.locator('textarea')
+                text_input = cell.locator('input:not([type="checkbox"])')
 
-            self.page.locator('li a').first.click(force=True)
+                if checkbox.count() > 0:
+                    value = checkbox.first.is_checked()
+                elif text_area.count() > 0:
+                    value = text_area.first.input_value()
+                elif text_input.count() > 0:
+                    value = text_input.first.input_value()
+                else:
+                    value = cell.inner_text().strip()
 
-            # import Locator and Page from playwright and then this syntax allows for auto suggestions
-            clone_link: Locator = self.page.locator('a[href*="clone"]')
-            clone_link.click()
+                list_items_original.append(value)
 
-            # Pauses the script execution for the given number of milliseconds.
-            # 500 → 0.5 seconds.
-            # It does nothing else: it doesn’t check for elements, conditions, or any page state.
-            # It just sleeps.Effectively, it’s equivalent to:
-            # import time
-            # time.sleep(0.5)
-            # but in a Playwright-friendly way that integrates with the event loop.
+        self.page.locator('li a').first.click(force=True)
 
-            self.page.wait_for_timeout(500)
+        # import Locator and Page from playwright and then this syntax allows for auto suggestions
+        clone_link: Locator = self.page.locator('a[href*="clone"]')
+        clone_link.click()
 
-            # get the cloned list details:
+        self.page.wait_for_timeout(500)
 
-            list_name = self.page.wait_for_selector('input[name="list_name"]', state='visible')
-            list_name_clone = list_name.input_value()
+        # get the cloned list details:
 
-            rows_clone = self.page.wait_for_selector(
-                '#task_table > tbody > tr',
-                state='visible', timeout=500)
-            rows_clone = self.page.locator('#task_table > tbody > tr')
+        list_name = self.page.wait_for_selector('input[name="list_name"]', state='visible')
+        list_name_clone = list_name.input_value()
 
-            if rows_clone.count() > 0:
-                for row in rows_clone.all():
-                    cells = row.locator('td').all()
-                    for cell in cells:
-                        checkbox = cell.locator("input[type='checkbox']")
-                        text_area = cell.locator('textarea')
-                        text_input = cell.locator('input:not([type="checkbox"])')
+        # rows_clone = self.page.wait_for_selector(
+        #     '#task_table > tbody > tr',
+        #     state='visible', timeout=500)
+        rows_clone = self.page.locator('#task_table > tbody > tr:has(td textarea, td input)')
 
-                        if checkbox.count() > 0:
-                            value = checkbox.first.is_checked()
-                        elif text_area.count() > 0:
-                            value = text_area.first.input_value()
-                        elif text_input.count() > 0:
-                            value = text_input.first.input_value()
-                        else:
-                            value = cell.inner_text().strip()
+        row_clone_count = rows_clone.count()
 
-                        list_items_clone.append(value)
+        for i in range(0, row_clone_count):  # start at 1, skip index 0
+            row = rows_clone.nth(i)
+            cells = row.locator('td:has(textarea, input)').all()
+            for cell in cells:
+                checkbox = cell.locator("input[type='checkbox']")
+                text_area = cell.locator('textarea')
+                text_input = cell.locator('input:not([type="checkbox"])')
+
+                if checkbox.count() > 0:
+                    value = checkbox.first.is_checked()
+                elif text_area.count() > 0:
+                    value = text_area.first.input_value()
+                elif text_input.count() > 0:
+                    value = text_input.first.input_value()
+                else:
+                    value = cell.inner_text().strip()
+
+                list_items_clone.append(value)
 
 
 
-        except:
-            self.page.locator('li a').first.click(force=True)
+        self.page.locator('li a').first.click(force=True)
 
-            # import Locator and Page from playwright and then this syntax allows for auto suggestions
-            clone_link: Locator = self.page.locator('a[href*="clone"]')
-            clone_link.click()
+        # import Locator and Page from playwright and then this syntax allows for auto suggestions
+        clone_link: Locator = self.page.locator('a[href*="clone"]')
+        clone_link.click()
 
-            self.page.wait_for_timeout(500)
+        self.page.wait_for_timeout(500)
 
-            # get the cloned list details:
+        # get the cloned list details:
 
-            list_name = self.page.wait_for_selector('input[name="list_name"]', state='visible')
-            list_name_clone = list_name.input_value()
+        list_name = self.page.wait_for_selector('input[name="list_name"]', state='visible')
+        list_name_clone = list_name.input_value()
+
+        #logger.info(list_items_original, list_items_clone)
 
         return list_name_original, list_name_clone, list_items_original, list_items_clone
 

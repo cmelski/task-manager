@@ -2,6 +2,8 @@ from __future__ import annotations
 from datetime import date, datetime
 import jwt
 import datetime
+
+import requests
 from dotenv import load_dotenv
 
 # import psycopg2
@@ -30,6 +32,7 @@ import os, sys, shutil, os.path
 from flask import send_file
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+from flask import current_app
 
 '''
 Make sure the required packages are installed: 
@@ -360,16 +363,58 @@ def register_user():
     return render_template("register.html", form=register_form, current_user=current_user)
 
 
+def get_user_lists(endpoint=None, params=None, headers=None, data=None, ):
+    app_instance = create_app()
+
+    with app_instance.app_context():
+        base_url = current_app.config["BASE_URL"]
+        endpoint = '/api/get_user_lists'
+        params = {'user_id': current_user.id}
+        response = requests.get(url=base_url + endpoint, params=params)
+        response.raise_for_status()
+        assert response.ok
+        lists = response.json()['lists']
+        return lists
+
+
+@app.route('/api/get_user_lists', methods=['GET'])
+def get_user_lists_api():
+    if request.args.get("user_id"):
+        user_id = request.args.get("user_id")
+
+        try:
+            con = DBConnect()
+            con.cursor.execute(
+                "SELECT * from list Where user_id = %s;", (user_id,)
+            )
+            lists = con.cursor.fetchall()
+            con.cursor.close()
+
+            if len(lists) > 0:
+                return jsonify({
+                    "message": "Lists returned successfully",
+                    "lists": lists
+                }), 200
+            else:
+                return jsonify({
+                    "message": "User doesn't have any lists",
+                    "lists": lists
+                }), 200
+
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+
 @app.route('/')
 def home():
     if current_user.is_authenticated:
-        con = DBConnect()
-        # result = db.session.execute(db.select(ListTitle).where (ListTitle.user_id==current_user.id))
-        # lists = result.scalars().all()
-        con.cursor.execute(f"SELECT * from list where list.user_id = '{current_user.id}';")
-        lists = con.cursor.fetchall()
-        print(lists)
-        con.cursor.close()
+        # con = DBConnect()
+        # con.cursor.execute(f"SELECT * from list where list.user_id = '{current_user.id}';")
+        # lists = con.cursor.fetchall()
+        # print(lists)
+        # con.cursor.close()
+        lists = get_user_lists()
+
         return render_template("index.html", all_lists=lists)
     else:
         lists = []
@@ -543,8 +588,8 @@ def update_all_list_items(list_id):
                     con.connection.commit()
                     con.cursor.close()
 
-            #else:
-             #   flash("Please add at least 1 item to the list first")
+            # else:
+            #   flash("Please add at least 1 item to the list first")
 
             task_fields = [key for key in request.form.keys() if key.startswith('task_')]
             print(task_fields)
@@ -964,6 +1009,7 @@ def save_to_csv(list_id, list_name):
         download_name=f'{filename}',
         as_attachment=True)
 
+
 @app.route('/download_template')
 def download_template():
     csv_content = "Task,Due Date,Assignee,Notes,Complete\n"
@@ -978,6 +1024,7 @@ def download_template():
             "Content-Disposition": "attachment; filename=task_template.csv"
         }
     )
+
 
 @app.route('/logout')
 @logged_in_only
@@ -1028,34 +1075,6 @@ def add_new_list_api():
     except Exception as e:
         print("Error:", str(e))
         return jsonify({"error": str(e)}), 500
-
-
-@app.route('/api/get_user_lists', methods=['GET'])
-def get_user_lists_api():
-    if request.args.get("user_id"):
-        user_id = request.args.get("user_id")
-
-        try:
-            con = DBConnect()
-            con.cursor.execute(
-                "SELECT * from list Where user_id = %s;", (user_id,)
-            )
-            lists = con.cursor.fetchall()
-            con.cursor.close()
-
-            if len(lists) > 0:
-                return jsonify({
-                    "message": "Lists returned successfully",
-                    "lists": lists
-                }), 200
-            else:
-                return jsonify({
-                    "message": "User doesn't have any lists",
-                    "lists": lists
-                }), 200
-
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
 
 
 @app.route('/api/login', methods=['POST'])
@@ -1302,5 +1321,21 @@ def update_task_to_complete(list_item_id, list_id):
     return redirect(url_for("get_tasks_by_assignee_report"))
 
 
+def create_app():
+    app_instance = Flask(__name__)
+
+    env = os.getenv("FLASK_ENV", "development")  # default to development
+
+    if os.getenv("FLASK_ENV") == "production":
+        app.config.from_object("config.Config")
+    elif os.getenv("FLASK_ENV") == "testing":
+        app.config.from_object("config.TestingConfig")
+    else:
+        app.config.from_object("config.DevelopmentConfig")
+
+    return app
+
+
 if __name__ == "__main__":
-    app.run(debug=False, port=5002)
+    app = create_app()
+    app.run(debug=app.config.get("DEBUG", False), port=5002)
