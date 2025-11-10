@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 # import psycopg2
 import psycopg
-from flask import Flask, abort, render_template, redirect, url_for, flash, request, jsonify
+from flask import Flask, abort, render_template, redirect, url_for, flash, request, jsonify, Response
 from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
 from flask_login import UserMixin, AnonymousUserMixin, login_user, LoginManager, current_user, logout_user
@@ -416,6 +416,7 @@ def add_new_list():
 
     else:
         if current_user.is_authenticated:
+
             return render_template("add_list.html")
         else:
             flash("Please log in/register to add a new list")
@@ -480,11 +481,12 @@ def update_list_item(list_item_id, list_id):
 
 
 @app.route("/update_all_list_items/<int:list_id>", methods=["GET", "POST"])
-@logged_in_only
+# @logged_in_only
 def update_all_list_items(list_id):
     # result = db.session.execute(db.select(ListItem).where(ListItem.list_id == list_id))
     # list_items = result.scalars().all()
     id_string = ""
+    indexes = []
 
     if request.method == "POST":
         if request.form.get("ids"):
@@ -511,6 +513,7 @@ def update_all_list_items(list_id):
                     print(item)
 
                     n = str(i)
+                    indexes.append(n)
 
                     task = request.form[f"task_{n}"]
 
@@ -539,6 +542,36 @@ def update_all_list_items(list_id):
                                        (task, due, assignee, notes, completed, id_list[i]))
                     con.connection.commit()
                     con.cursor.close()
+
+            #else:
+             #   flash("Please add at least 1 item to the list first")
+
+            task_fields = [key for key in request.form.keys() if key.startswith('task_')]
+            print(task_fields)
+            if len(task_fields) > 0:
+
+                for i in range(0, len(task_fields)):
+                    index = task_fields[i].split('_')[1]
+                    if index not in indexes:
+                        task = request.form[f"task_{index}"]
+                        due = request.form[f"due_{index}"]
+                        assignee = request.form[f"assign_{index}"]
+                        notes = request.form[f"notes_{index}"]
+                        completed = 0
+                        if request.form.get(f"complete_{index}", True):
+                            if request.form.get(f"complete_{index}"):
+                                completed = True
+                            else:
+                                completed = False
+                        con = DBConnect()
+                        con.cursor.execute(f'SELECT * FROM items LIMIT 0')
+                        column_names = [desc[0] for desc in con.cursor.description]
+                        new_item = f"INSERT INTO items({column_names[1]}," \
+                                   f"{column_names[2]}, {column_names[3]}, {column_names[4]}, {column_names[5]}, {column_names[6]})" \
+                                   f" VALUES('{list_id}','{task}', '{due}', '{assignee}', '{notes}', '{completed}');"
+                        con.cursor.execute(new_item)
+                        con.connection.commit()
+                        con.cursor.close()
 
             else:
                 flash("Please add at least 1 item to the list first")
@@ -931,6 +964,20 @@ def save_to_csv(list_id, list_name):
         download_name=f'{filename}',
         as_attachment=True)
 
+@app.route('/download_template')
+def download_template():
+    csv_content = "Task,Due Date,Assignee,Notes,Complete\n"
+
+    csv_content += "Example Task,2025-11-09,John Doe,Sample note,false\n"
+    csv_content += "Another Task,2025-11-10,Mary Smith,tight timeline,true\n"
+
+    return Response(
+        csv_content,
+        mimetype="text/csv",
+        headers={
+            "Content-Disposition": "attachment; filename=task_template.csv"
+        }
+    )
 
 @app.route('/logout')
 @logged_in_only
@@ -1233,6 +1280,7 @@ def get_tasks_by_assignee_report():
 
     return render_template("tasks_by_assignee.html", rows=rows, assignees=assignees)
 
+
 @app.route("/<int:list_item_id>/<int:list_id>", methods=["GET", "POST"])
 @logged_in_only
 def update_task_to_complete(list_item_id, list_id):
@@ -1247,7 +1295,7 @@ def update_task_to_complete(list_item_id, list_id):
           AND a.id = %s
           AND a.list_id = %s
           AND u.id = %s;
-    """, (list_item_id, list_id,f'{current_user.id}', ))
+    """, (list_item_id, list_id, f'{current_user.id}',))
     con.connection.commit()
     con.cursor.close()
 

@@ -9,7 +9,7 @@ import time
 
 # use these tags to run a specific scenario when multiple scenarios are in feature file
 # terminal pytest -m delete_list
-@pytest.mark.clone_list_item
+@pytest.mark.clone_list
 @scenario('../features/list.feature', 'Verify successful list cloning')
 def test_clone_list(set_auth_state):
     pass

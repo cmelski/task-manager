@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Row Example</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 50%;
+    }
+    th, td {
+      border: 1px solid #999;
+      padding: 8px;
+      text-align: left;
+    }
+    button {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h3>Dynamic Form Table</h3>
+
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Age</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Initial row -->
+      <tr>
+        <td><input type="text" name="name" placeholder="Enter name"></td>
+        <td><input type="email" name="email" placeholder="Enter email"></td>
+        <td><input type="number" name="age" placeholder="Enter age"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <button id="addRowBtn">+ Add Row</button>
+
+  <script>
+    document.getElementById('addRowBtn').addEventListener('click', function() {
+      const table = document.getElementById('dataTable').getElementsByTagName('tbody')[0];
+      const newRow = table.insertRow();
+
+      const cell1 = newRow.insertCell(0);
+      const cell2 = newRow.insertCell(1);
+      const cell3 = newRow.insertCell(2);
+
+      cell1.innerHTML = '<input type="text" name="name" placeholder="Enter name">';
+      cell2.innerHTML = '<input type="email" name="email" placeholder="Enter email">';
+      cell3.innerHTML = '<input type="number" name="age" placeholder="Enter age">';
+    });
+  </script>
+</body>
+</html>

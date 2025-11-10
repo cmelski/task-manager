@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 
 
-<html xmlns="http://www.w3.org/1999/html">
+<html>
 <head>
     <title>List Details</title>
     <meta charset="utf-8"/>
@@ -179,11 +179,10 @@ position: relative;
             </form>
 
 
-            <form id="item_list" method="POST" action="{{ url_for('update_all_list_items',list_id = list_id)}}">
-            <button id="addRowBtn" type="button">+ Add Row</button> <button id="loadCsvBtn" type="button">📂 Load CSV</button><button id="downloadCsvTemplate" type="button">📄 Download CSV Template</button><button id="saveAll" type="submit">Save All</button>
-                 <input type="file" id="csvFile" accept=".csv" style="display:none;">
+            </form>
 
-                 <table class="task-table" id="task_table">
+
+            <table class="task-table">
                 <thead>
                 <tr>
                     <th scope="col">Task Name</th>
@@ -192,7 +191,11 @@ position: relative;
                     <th scope="col">Notes</th>
                     <th scope="col">Completed</th>
                     <th scope="col"></th>
-                    <th scope="col"></th>
+                    <th scope="col">
+                        <div class="tooltip"><span style="font-size: 24px;"><a href="javascript:{}"
+                                                                               onclick="document.getElementById('item_list').submit();">💾</a></span><span
+                                class="tooltiptext">Save All</span></div>
+                    </th>
 
                 </tr>
 
@@ -201,7 +204,7 @@ position: relative;
                 <tbody>
 
 
-
+                <form id="item_list" method="POST" action="{{ url_for('update_all_list_items',list_id = list_id)}}">
 
                     <tr>
                         {% set data = [] %}
@@ -279,16 +282,135 @@ position: relative;
 
                     <input type="hidden" name="ids" value="{{ data }}">
 
+                </form>
+
+                {% for i in range(0,requested_list|length): %}
+                {% if (i == requested_list|length -1): %}
+
+                <tr style="background-color:#aebbd1">
+                    <form id="add_item_1" method="POST" action="{{ url_for('add_list_item',list_id = list_id)}}">
+                        <td><input type="text" id="add" style="font-weight:bold;color: #818385;" name="new_task"
+                                   placeholder="<Add New Task>"/></td>
+                        <td>
+                            <div class="calendar-wrapper">
+                                <input type="text" class="date-input" name="new_due_date" placeholder="Select date"
+                                       readonly
+                                       data-testid="date-input"/>
+                                <div class="calendar-popup" data-testid="calendar-popup">
+                                    <div class="calendar-header">
+                                        <button class="prev-month" data-testid="prev-month">◀</button>
+                                        <span class="month-label" data-testid="month-label">Month Year</span>
+                                        <button class="next-month" data-testid="next-month">▶</button>
+                                    </div>
+                                    <table>
+                                        <thead>
+                                        <tr>
+                                            <th>Su</th>
+                                            <th>Mo</th>
+                                            <th>Tu</th>
+                                            <th>We</th>
+                                            <th>Th</th>
+                                            <th>Fr</th>
+                                            <th>Sa</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody class="calendar-days" data-testid="calendar-days"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </td>
+                        <!--  <td><input type="date" name="new_due_date"/></td>-->
+                        <td><input type="text" name="new_assignee" list="assignName"/>
+                            <datalist id="assignName">
+                                <option value="Chris">Chris</option>
+                                <option value="Karen">Karen</option>
+                            </datalist>
+                        </td>
+                        <td><textarea name="new_notes" rows="3" cols="8"
+                                      style="background-color:#ffffff;font-size: 14px"></textarea></td>
+                        <td><input type="checkbox" name="new_complete"
+                                   style="opacity:1;appearance:checkbox;margin-right:0"/></td>
+
+                        <td>
+                            <div class="tooltip"><span style="font-size: 24px;"><a href="javascript:{}"
+                                                                                   onclick="document.getElementById('add_item_1').submit();">➕</a></span><span
+                                    class="tooltiptext">Add</span></div>
+                        </td>
+
+                        <td></td>
 
 
+                    </form>
 
 
+                </tr>
+                {% endif %}
 
+                {% endfor %}
+
+
+                {% if requested_list|length == 0: %}
+                <tr style="background-color:#aebbd1">
+                    <form id="add_item_2" method="POST" action="{{ url_for('add_list_item',list_id = list_id)}}">
+                        <td><input type="text" id="add" style="font-weight:bold;color: #818385;" name="new_task"
+                                   placeholder="<Add New Task>"/></td>
+                        <td>
+                            <div class="calendar-wrapper">
+                                <input type="text" class="date-input" name="new_due_date" placeholder="Select date"
+                                       readonly
+                                       data-testid="date-input"/>
+                                <div class="calendar-popup" data-testid="calendar-popup">
+                                    <div class="calendar-header">
+                                        <button class="prev-month" data-testid="prev-month">◀</button>
+                                        <span class="month-label" data-testid="month-label">Month Year</span>
+                                        <button class="next-month" data-testid="next-month">▶</button>
+                                    </div>
+                                    <table>
+                                        <thead>
+                                        <tr>
+                                            <th>Su</th>
+                                            <th>Mo</th>
+                                            <th>Tu</th>
+                                            <th>We</th>
+                                            <th>Th</th>
+                                            <th>Fr</th>
+                                            <th>Sa</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody class="calendar-days" data-testid="calendar-days"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </td>
+                        <!-- <td><input type="date" name="new_due_date"/></td>  -->
+                        <td><input type="text" name="new_assignee" list="assignName"/>
+                            <datalist id="assignName">
+                                <option value="Chris">Chris</option>
+                                <option value="Karen">Karen</option>
+                            </datalist>
+                        </td>
+                        <td><textarea name="new_notes" rows="3" cols="8"
+                                      style="background-color:#ffffff;font-size: 14px"></textarea></td>
+                        <td><input type="checkbox" name="new_complete"
+                                   style="opacity:1;appearance:checkbox;margin-right:0"/></td>
+                        <td>
+                            <div class="tooltip"><span style="font-size: 24px;"><a href="javascript:{}"
+                                                                                   onclick="document.getElementById('add_item_2').submit();">➕</a></span><span
+                                    class="tooltiptext">Add</span></div>
+                        </td>
+
+                        <td></td>
+
+
+                    </form>
+
+
+                </tr>
+
+                {% endif %}
 
                 </tbody>
             </table>
-
-                  </form>
 
 
         </div>
@@ -309,8 +431,7 @@ position: relative;
 
 <!-- Scripts -->
 <script>
-
-function initCalendar(wrapper) {
+document.querySelectorAll('.calendar-wrapper').forEach(wrapper => {
     const input = wrapper.querySelector('.date-input');
     const popup = wrapper.querySelector('.calendar-popup');
     const daysEl = wrapper.querySelector('.calendar-days');
@@ -364,24 +485,29 @@ function initCalendar(wrapper) {
         }
     }
 
-    // Initialize selected from input value
-    if(input.value){
-        const val = new Date(input.value);
-        selected = new Date(val.getFullYear(), val.getMonth(), val.getDate());
-        current = new Date(val.getFullYear(), val.getMonth(), 1);
-    } else {
-        selected = null;
-        current = new Date();
-        input.value = '';
-        input.placeholder = 'Select Date';
-    }
+    // Initialize selected from input value (preserve your table data)
+   if(input.value){
+    // preserve existing value
+    const val = new Date(input.value);
+    selected = new Date(val.getFullYear(), val.getMonth(), val.getDate());
+    current = new Date(val.getFullYear(), val.getMonth(), 1);
+} else {
+    // no value in input => placeholder
+    selected = null;         // no selected date yet
+    current = new Date();    // calendar still opens to current month
+    input.value = '';        // leave input empty
+    input.placeholder = 'Select Date';  // show placeholder text
+}
 
+
+    // Hide popup initially
     popup.style.display = 'none';
     render();
 
-    // Toggle popup
+    // Toggle popup on click
     input.addEventListener('click', e => {
-        e.stopPropagation();
+        e.stopPropagation(); // Prevent the document click from immediately closing it
+        // Close other open popups
         document.querySelectorAll('.calendar-popup').forEach(p => {
             if(p !== popup) p.style.display = 'none';
         });
@@ -389,7 +515,7 @@ function initCalendar(wrapper) {
         render();
     });
 
-    // Month navigation
+    // Navigation buttons
     prevBtn.addEventListener('click', e=>{
         e.stopPropagation();
         current = new Date(current.getFullYear(), current.getMonth()-1,1);
@@ -401,148 +527,12 @@ function initCalendar(wrapper) {
         render();
     });
 
-    // Close popup on outside click
+    // Close popup if clicking outside
     document.addEventListener('click', e=>{
         if(!wrapper.contains(e.target)) popup.style.display = 'none';
     });
-}
-
-// Initialize existing calendars at page load
-document.querySelectorAll('.calendar-wrapper').forEach(initCalendar);
-
-
-</script>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  const addRowBtn = document.getElementById("addRowBtn");
-  const tableBody = document.querySelector("#task_table tbody");
-  const loadCsvBtn = document.getElementById("loadCsvBtn");
-  const csvFile = document.getElementById("csvFile");
-  const downloadTemplate = document.getElementById("downloadCsvTemplate");
-
-  // --- CSV Template Download ---
-  downloadTemplate.addEventListener("click", () => {
-    window.location.href = "/download_template";
-  });
-
-
-
-  // --- Helper: Get next index ---
-  function getNextIndex() {
-    const inputs = tableBody.querySelectorAll('input[name^="task_"]');
-    if (inputs.length === 0) return 0;
-    const lastInputName = inputs[inputs.length - 1].name;
-    return parseInt(lastInputName.split("_")[1], 10) + 1;
-  }
-
-  // --- Add Row ---
-  addRowBtn.addEventListener("click", () => {
-    const nextIndex = getNextIndex();
-    const newRow = tableBody.insertRow();
-
-    newRow.innerHTML = `
-      <td><input type="text" name="task_${nextIndex}" placeholder="Enter task name"></td>
-      <td>
-        <div class="calendar-wrapper">
-          <input type="text" class="date-input" name="due_${nextIndex}" placeholder="Select date" readonly>
-          <div class="calendar-popup">
-            <div class="calendar-header">
-              <button class="prev-month">◀</button>
-              <span class="month-label">Month Year</span>
-              <button class="next-month">▶</button>
-            </div>
-            <table>
-              <thead>
-                <tr><th>Su</th><th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th><th>Sa</th></tr>
-              </thead>
-              <tbody class="calendar-days"></tbody>
-            </table>
-          </div>
-        </div>
-      </td>
-      <td><input type="text" name="assign_${nextIndex}" placeholder="Select/Enter assignee" list="assignPerson"><datalist id="assignPerson">
-                                <option value="Chris">Chris</option>
-                                <option value="Karen">Karen</option>
-                            </datalist></td>
-      <td><textarea name="notes_${nextIndex}" placeholder="Enter notes"></textarea></td>
-      <td><input type="checkbox" name="complete_${nextIndex}" style="opacity:1;appearance:checkbox;margin-right:0"></td>
-      <td><button class="deleteRowBtn">✘</button></td>
-      <td></td>
-    `;
-
-    if (typeof initCalendar === "function") {
-      initCalendar(newRow.querySelector(".calendar-wrapper"));
-    }
-  });
-
-  // --- Delete Row (delegated) ---
-  tableBody.addEventListener("click", (event) => {
-    if (event.target.classList.contains("deleteRowBtn")) {
-      event.target.closest("tr").remove();
-    }
-  });
-
-  // --- CSV Loader ---
-  loadCsvBtn.addEventListener("click", () => csvFile.click());
-
-
-
-
-  csvFile.addEventListener("change", (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => loadCsvToTable(e.target.result);
-    reader.readAsText(file);
-  });
-
-  function loadCsvToTable(csvText) {
-    const rows = csvText.trim().split("\n");
-    for (const row of rows.slice(1)) {
-      const cols = row.split(",");
-      const nextIndex = getNextIndex();
-      const newRow = tableBody.insertRow();
-      newRow.innerHTML = `
-        <td><input type="text" name="task_${nextIndex}" value="${cols[0] || ''}" placeholder="Enter task name"></td>
-        <td>
-          <div class="calendar-wrapper">
-            <input type="text" class="date-input" name="due_${nextIndex}" value="${cols[1] || ''}" readonly>
-            <div class="calendar-popup">
-              <div class="calendar-header">
-                <button class="prev-month">◀</button>
-                <span class="month-label">Month Year</span>
-                <button class="next-month">▶</button>
-              </div>
-              <table>
-                <thead>
-                  <tr><th>Su</th><th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th><th>Sa</th></tr>
-                </thead>
-                <tbody class="calendar-days"></tbody>
-              </table>
-            </div>
-          </div>
-        </td>
-        <td><input type="text" name="assign_${nextIndex}" value="${cols[2] || ''}" placeholder="Enter assignee"></td>
-        <td><textarea name="notes_${nextIndex}" placeholder="Enter notes">${cols[3] || ''}</textarea></td>
-        <td><input type="checkbox" name="complete_${nextIndex}" ${cols[4]?.trim().toLowerCase() === 'true' ? 'checked' : ''} style="opacity:1;appearance:checkbox;margin-right:0"></td>
-        <td><button class="deleteRowBtn">✘</button></td>
-        <td></td>
-      `;
-
-      if (typeof initCalendar === "function") {
-        initCalendar(newRow.querySelector(".calendar-wrapper"));
-      }
-    }
-  }
 });
-
-
-
 </script>
-
-
-
 
 
 <script src="../static/assets/js/jquery.min.js"></script>

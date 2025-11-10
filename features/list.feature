@@ -49,3 +49,9 @@ Feature: List functionality in Task Manager
     When I locate and click an existing list
     And Click Clone
     Then The list is cloned
+
+  Scenario: Verify successful csv upload
+    Given The User is on dashboard page
+    When I create a new list and view the list details
+    And Upload a csv template of tasks
+    Then The upload is successful
