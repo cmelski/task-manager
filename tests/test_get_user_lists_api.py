@@ -107,7 +107,7 @@ def user_on_dashboard_page(browser_instance, shared_data):
 
 
 @when('The get user lists mock API API response is triggered')
-def get_user_lists_api_mock(browser_instance, shared_data, env, db_connection):
+def get_user_lists_api_mock(url_start, shared_data, env, db_connection):
     dashboard_page = shared_data['dashboard_page']
     logged_in_user = dashboard_page.verify_dashboard(env)
     logger.info(f'logged in user: {logged_in_user}')
@@ -124,7 +124,7 @@ def get_user_lists_api_mock(browser_instance, shared_data, env, db_connection):
             "lists": []
         }
 
-        user_lists_api = api_helper.get_user_lists(params={"user_id": user_id})
+        user_lists_api = api_helper.get_user_lists(url_start, params={"user_id": user_id})
         logger.info(f'User lists: {user_lists_api["message"]}')
         shared_data['user_lists_api'] = user_lists_api['message']
 

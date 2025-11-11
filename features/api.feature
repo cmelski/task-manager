@@ -20,3 +20,4 @@ Feature: API Tests in the Task Manager
     Given The user logs in via API
     When The API response token is received
     Then The user bypasses the login screen
+

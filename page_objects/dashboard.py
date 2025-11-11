@@ -15,6 +15,7 @@ class DashboardPage:
         self.page = page
 
 
+
     def navigate_to_login_page(self):
         from .login import LoginPage
         self.page.locator('li a').first.click()

@@ -363,22 +363,11 @@ def register_user():
     return render_template("register.html", form=register_form, current_user=current_user)
 
 
-def get_user_lists(base_url):
-
-    with app.app_context():
-        endpoint = '/api/get_user_lists'
-        params = {'user_id': current_user.id}
-        response = requests.get(url=base_url + endpoint, params=params)
-        response.raise_for_status()
-        assert response.ok
-        lists = response.json()['lists']
-        return lists
-
-
 @app.route('/api/get_user_lists', methods=['GET'])
-def get_user_lists_api():
+def get_user_lists():
     if request.args.get("user_id"):
         user_id = request.args.get("user_id")
+
 
         try:
             con = DBConnect()
@@ -393,11 +382,14 @@ def get_user_lists_api():
                     "message": "Lists returned successfully",
                     "lists": lists
                 }), 200
+
             else:
                 return jsonify({
                     "message": "User doesn't have any lists",
                     "lists": lists
                 }), 200
+
+
 
         except Exception as e:
             return jsonify({"error": str(e)}), 500
@@ -406,14 +398,12 @@ def get_user_lists_api():
 @app.route('/')
 def home():
     if current_user.is_authenticated:
-        # con = DBConnect()
-        # con.cursor.execute(f"SELECT * from list where list.user_id = '{current_user.id}';")
-        # lists = con.cursor.fetchall()
-        # print(lists)
-        # con.cursor.close()
-        #get base url (for test or prod)
-        base_url = request.url_root
-        lists = get_user_lists(base_url)
+
+        con = DBConnect()
+        con.cursor.execute(f"SELECT * from list where list.user_id = '{current_user.id}';")
+        lists = con.cursor.fetchall()
+        print(lists)
+        con.cursor.close()
 
         return render_template("index.html", all_lists=lists)
     else:
@@ -1337,5 +1327,5 @@ def create_app():
 
 
 if __name__ == "__main__":
-    #app = create_app()
+    # app = create_app()
     app.run(debug=app.config.get("DEBUG", False), port=5002)
