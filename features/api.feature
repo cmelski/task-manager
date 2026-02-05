@@ -21,3 +21,8 @@ Feature: API Tests in the Task Manager
     When The API response token is received
     Then The user bypasses the login screen
 
+  Scenario: Mock api call user lists
+    Given The user has lists
+    When The user goes to Dashboard the API response for no lists is mocked
+    Then The user sees no lists
+

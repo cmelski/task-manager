@@ -55,3 +55,9 @@ Feature: List functionality in Task Manager
     When I create a new list and view the list details
     And Upload a csv template of tasks
     Then The upload is successful
+
+  Scenario: Verify duplicate tasks message
+    Given The User is on dashboard page
+    When I create a new list and view the list details
+    And Upload the same csv template of tasks twice
+    Then Duplicate tasks message is displayed

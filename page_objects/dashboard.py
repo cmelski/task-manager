@@ -5,7 +5,7 @@ from playwright.sync_api import expect
 
 from tests.conftest import logger
 from .list import ListPage
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 
 class DashboardPage:
@@ -133,15 +133,28 @@ class DashboardPage:
 
         return True
 
-    def select_outstanding_tasks_report(self):
-        self.page.goto('https://task-manager-6pqf.onrender.com/outstanding_tasks?mock_empty=true')
-        from .report import ReportPage
-        report_page = ReportPage(self.page)
-        return report_page
+    # def select_outstanding_tasks_report(self):
+    #     self.page.goto('https://task-manager-6pqf.onrender.com/outstanding_tasks?mock_empty=true')
+    #     from .report import ReportPage
+    #     report_page = ReportPage(self.page)
+    #     return report_page
 
-    # @patch("main.con.cursor.fetchall", return_value=[])
-    # def select_outstanding_tasks_report(self, mock_fetch):
-    #     self.page.goto('https://task-manager-6pqf.onrender.com/outstanding_tasks')
+    @patch("main.DBConnect")
+    def select_outstanding_tasks_report(self, url_start, mock_db):
+        #
+        # # 🧠 Important: ensure the patch is active *before* navigation
+        # with mock_db:
+        #     mock_con = MagicMock()
+        #     mock_cursor = MagicMock()
+        #     mock_db.return_value = mock_con
+        #     mock_con.cursor = mock_cursor
+        #     mock_cursor.fetchall.return_value = []
+        #     #self.page.goto(f"{url_start}outstanding_tasks")
+        #     self.page.locator('object a[href*="outstanding_tasks"]').click()
+        self.page.goto(f"{url_start}outstanding_tasks?mock_empty=true")
+
+        from .report import ReportPage
+        return ReportPage(self.page)
 
     def get_user_lists(self):
         number_of_lists = self.page.locator('text=Active Lists').inner_text()
@@ -156,11 +169,26 @@ class DashboardPage:
     def reload_page(self):
         self.page.reload()
 
+    #this handles a new tab/window
     def select_tasks_by_assignee_report(self):
         from .report import ReportPage
-        report_page = ReportPage(self.page)
-        self.page.locator('a [href="/tasks_by_assignee"]').click()
+
+        # Wait for new tab to open when the link is clicked
+        with self.page.context.expect_page() as new_page_info:
+            self.page.locator('a[href="/tasks_by_assignee"]').click()
+
+        # Get the new page object
+        new_page = new_page_info.value
+
+        # Wait for it to fully load
+        new_page.wait_for_load_state()
+
+        # Wrap it in the ReportPage class and return
+        report_page = ReportPage(new_page)
         return report_page
+
+    def validate_mock_api_get_user_lists(self):
+        expect(self.page.get_by_text('Your current list count is 0.')).to_be_visible()
 
 
 

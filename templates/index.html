@@ -59,89 +59,6 @@
 
 
    </style>
-		<!--{% if token %}
-		<script type="module">
-(async function autoLoginIfNeeded() {
-
-  try {
-    // 1) don't run if token already present or we already auto-logged-in this session
-    if (localStorage.getItem("token") || sessionStorage.getItem("autoLoginDone")) {
-      return;
-    }
-      // store token and mark we've auto-logged-in this session
-      //const token = "{{ token }}";
-      const token = localStorage.getItem("token")
-      localStorage.setItem("token", token);
-      sessionStorage.setItem("autoLoginDone", "1");
-
-      // avoid redirect loop: only navigate if we're not already on home
-      if (window.location.pathname !== "/") {
-        window.location.href = "/";
-      } else {
-        // if already at '/', just reload once to ensure UI picks up token
-        window.location.reload();
-      }
-
-  } catch (err) {
-    console.error("Auto-login error:", err);
-  }
-})();
-</script>
-
-			{% endif %}
-
-
-
-<script type="module">
-(async function autoLoginIfNeeded() {
-
-
-  try {
-    // 1) don't run if token already present or we already auto-logged-in this session
-    if (localStorage.getItem("token") || sessionStorage.getItem("autoLoginDone")) {
-      return;
-    }
-
-    // 2) credentials for test-only route; keep them safe and only use this in test/dev
-    //const payload = { email: "email", password: "password" };
-
-    // 3) POST to your test login endpoint (must accept POST JSON)
-    const response = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      //body: JSON.stringify(payload)
-    });
-
-    // 4) parse JSON safely
-    const data = await response.json().catch(() => null);
-
-    if (response.ok && data && data.token) {
-      // store token and mark we've auto-logged-in this session
-      localStorage.setItem("token", data.token);
-      sessionStorage.setItem("autoLoginDone", "1");
-
-      // avoid redirect loop: only navigate if we're not already on home
-      if (window.location.pathname !== "/") {
-        window.location.href = "/";
-      } else {
-        // if already at '/', just reload once to ensure UI picks up token
-        window.location.reload();
-      }
-    } else {
-      console.warn("Auto login failed:", data);
-      // optional: remove any half-set token
-      localStorage.removeItem("token");
-      sessionStorage.removeItem("autoLoginDone");
-    }
-  } catch (err) {
-    console.error("Auto-login error:", err);
-  }
-})();
-</script>-->
-
-
-
-
 
 
 	</head>
@@ -151,6 +68,8 @@
 
 				<!-- Header -->
 					<header id="header">
+						 <input type="hidden" id="current_user_id" value="{{ current_user.id if current_user.is_authenticated else '' }}">
+
 
 						<div class="inner">
 
@@ -166,6 +85,7 @@
 								<nav>
 									<ul>
 										{% if current_user.is_authenticated: %}
+
 										<div class="tooltip"><span style="font-size: 20px;">👤</span><span class="tooltiptext">{{current_user.name}}/{{current_user.email}}</span></div>
 										<li><a href="#menu">Menu</a></li>
 
@@ -205,9 +125,10 @@
 										<img src="static/images/pic02.jpg" alt=""/>
 									</span>
 									<a href="">
-										<h2>Active Lists ({{all_lists|length}})</h2>
 
-										<div class="content">
+										<!--<h2>Active Lists ({{all_lists|length}})</h2>
+
+										<div class="content" id="userLists">
 
 												{% for list in all_lists: %}
 											<object><a href="{{ url_for('show_list_details',list_id = list[0]) }}">{{list[2]}}</a> <a href="{{ url_for('delete_list',list_id = list[0])}}">✘</a></object><br>
@@ -217,11 +138,25 @@
 													<span class="tooltiptext">Add New List</span>
 											</div>
 
+											</div>-->
+
+										<div class="content" id="userLists">
+
+
+
+
+
+											</div>
+										<div class="tooltip">
+												<object><a href="{{ url_for('add_new_list') }}">➕</a></object>
+													<span class="tooltiptext">Add New List</span>
 											</div>
 
-									</a>
+								</a>
 
 								</article>
+
+
 
 
 								<article class="style2" style="height:200px; width:325px">
@@ -233,7 +168,7 @@
 										<div class="content">
 											{% if current_user.is_authenticated: %}
 											<object><a href="{{ url_for('outstanding_task_report') }}">Outstanding Tasks</a></object><br>
-											<object><a href="{{ url_for('get_tasks_by_assignee_report') }}">Tasks by Assignee</a></object><br>
+											<object><a href="{{ url_for('get_tasks_by_assignee_report') }}" target="_blank">Tasks by Assignee</a></object><br>
 											{% endif %}
 										</div>
 									</a>
@@ -257,6 +192,76 @@
 			</div>
 
 		<!-- Scripts -->
+
+		<script>
+  const deleteListBaseUrl = "{{ url_for('delete_list', list_id=0).replace('0', '') }}";
+</script>
+		<script>
+
+		  const selectListBaseUrl = "{{ url_for('show_list_details',list_id=0).replace('0', '') }}";
+</script>
+
+
+
+		<script>
+document.addEventListener("DOMContentLoaded", async function() {
+  const messageDiv = document.getElementById("message");
+  const listContainer = document.getElementById("userLists");  // 🧱 A div or ul to display lists
+  const currentUserInput = document.getElementById("current_user_id");
+  if (!currentUserInput) {
+    console.log("Hidden input current_user_id not found!");
+
+    return;
+  }
+
+		const currentUserID = currentUserInput.value;
+
+
+  console.log("Current user ID:", currentUserID);
+
+
+  try {
+    const response = await fetch(`/api/get_user_lists?user_id=${currentUserID}`);
+
+    if (!response.ok) throw new Error(`HTTP error! ${response.status}`);
+
+    const data = await response.json();
+
+if (currentUserID.length < 1) {
+	listContainer.innerHTML = '<object>Please log in to view/add lists.</object>';
+}
+
+else if (data.lists && data.lists.length > 0) {
+  listContainer.innerHTML = `
+    <h2>Active Lists (${data.lists.length})</h2>
+
+      ${data.lists.map(list =>
+        `<object><a href="${selectListBaseUrl}${list.id}">${list.name}</a> <a href="${deleteListBaseUrl}${list.id}">✘</a></object><br>`
+      ).join('')}
+
+  `;
+}
+
+else if (data.lists && data.lists.length < 1) {
+  listContainer.innerHTML = `
+    <h2>Active Lists (${data.lists.length})</h2>
+    <object>Your current list count is 0.</object>
+  `;
+}
+
+
+
+
+  } catch (err) {
+    console.error('Error fetching user lists:', err);
+    messageDiv.textContent = "⚠️ Unable to load your lists.";
+    messageDiv.style.display = "block";
+  }
+});
+</script>
+
+
+
 
 			<script src="static/assets/js/jquery.min.js"></script>
 			<script src="static/assets/js/browser.min.js"></script>

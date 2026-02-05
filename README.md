@@ -1,0 +1,1 @@
+Custom task manager web application built with Python, Flask, and Postgresql. Includes pytest BDD playwright test automation framework using POM and allure reporting

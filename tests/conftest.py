@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import logging
@@ -59,9 +60,11 @@ def env(request):
     load_dotenv(f"{env_name}.env")
     return env_name
 
+
 @pytest.fixture(scope="session")
 def url_start(env):  # env fixture ensures .env is loaded first
     return os.environ.get("BASE_URL")
+
 
 @pytest.fixture(scope="session")
 def db_connection(env):
@@ -158,11 +161,22 @@ def safe_goto(page, url, retries=3, delay=5):
     raise TimeoutError(f"Failed to load {url} after {retries} retries")
 
 
+def intercept_response(route, request):
+    route.fulfill(
+        status=200,
+        content_type="application/json",
+        body=json.dumps({
+            "message": "User doesn't have any lists",
+            "lists": []
+        })
+    )
+
+
 # main tests fixture that yields page object and then closes context and browser after yield as part of teardown
 @pytest.fixture(scope='function')
 def browser_instance(request, url_start, env):
     browser_name = request.config.getoption('browser_name')
-    #url_start = request.config.getoption('url_start')
+    # url_start = request.config.getoption('url_start')
     url_start = url_start
 
     with sync_playwright() as p:
@@ -184,8 +198,8 @@ def browser_instance(request, url_start, env):
             context = browser.new_context()
 
         page = context.new_page()
-
         safe_goto(page, url_start)
+
         try:
 
             yield page
@@ -280,3 +294,38 @@ def browser_instance_api(request):
             # if os.path.exists(file_path):
             #     os.remove(file_path)
             #     logger.info("Deleted auth_state_test.json.")
+
+
+@pytest.fixture(scope='function')
+def browser_instance_mock_api(request, url_start, env, set_auth_state):
+    browser_name = request.config.getoption('browser_name')
+    url_start = url_start
+
+    with sync_playwright() as p:
+        if browser_name == 'chrome':
+            browser = p.chromium.launch(headless=False, timeout=120000)
+        elif browser_name == 'firefox':
+            browser = p.firefox.launch(headless=False)
+
+        context = browser.new_context(storage_state=str(set_auth_state))  # auth_state_test.json
+
+        page = context.new_page()
+        page.context.route("**/api/get_user_lists*", intercept_response)
+        page.goto(url_start)
+
+        try:
+
+            yield page
+        finally:
+            context.close()
+            browser.close()
+            if env == 'test':
+                file_path = Path(__file__).parent.parent / "auth_state_test.json"
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    logger.info("Deleted auth_state_test.json.")
+            else:
+                file_path = Path(__file__).parent.parent / "auth_state_prod.json"
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    logger.info("Deleted auth_state_prod.json.")

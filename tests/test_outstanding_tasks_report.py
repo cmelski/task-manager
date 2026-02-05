@@ -14,12 +14,6 @@ def shared_data():
     return {}
 
 
-# method to mock the api response
-def intercept_response(route):
-    route.fulfill(
-        empty_list=[]
-    )
-
 
 # define the path to the feature file
 #scenarios('features/list.feature')
@@ -47,9 +41,9 @@ def user_on_dashboard_page(browser_instance, shared_data):
 
 
 @when('Navigate to Outstanding Tasks report')
-def click_outstanding_tasks_report(shared_data):
+def click_outstanding_tasks_report(shared_data, url_start):
     dashboard_page = shared_data['dashboard_page']
-    report_page = dashboard_page.select_outstanding_tasks_report()
+    report_page = dashboard_page.select_outstanding_tasks_report(url_start)
     shared_data['report_page'] = report_page
     time.sleep(2)
 

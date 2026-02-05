@@ -166,6 +166,9 @@ position: relative;
             {% endif %}
             {% endwith %}
 
+            <div id="message" style="display:none; color: red; font-weight: bold;">
+            </div>
+
 
             <form id=500 method="POST" action="{{ url_for('update_list_name',list_id = list_id)}}">
                 <div class="fields">
@@ -425,8 +428,6 @@ document.addEventListener("DOMContentLoaded", function () {
     window.location.href = "/download_template";
   });
 
-
-
   // --- Helper: Get next index ---
   function getNextIndex() {
     const inputs = tableBody.querySelectorAll('input[name^="task_"]');
@@ -435,11 +436,26 @@ document.addEventListener("DOMContentLoaded", function () {
     return parseInt(lastInputName.split("_")[1], 10) + 1;
   }
 
+  // --- Helper: Check for duplicates ---
+  function checkForDuplicates() {
+    const inputs = tableBody.querySelectorAll('input[name^="task_"]');
+    const values = Array.from(inputs)
+      .map(i => i.value.trim())
+      .filter(v => v !== '');
+    const seen = new Set();
+    let duplicateCount = 0;
+
+    for (const val of values) {
+      if (seen.has(val)) duplicateCount++;
+      seen.add(val);
+    }
+    return duplicateCount;
+  }
+
   // --- Add Row ---
   addRowBtn.addEventListener("click", () => {
     const nextIndex = getNextIndex();
     const newRow = tableBody.insertRow();
-
     newRow.innerHTML = `
       <td><input type="text" name="task_${nextIndex}" placeholder="Enter task name"></td>
       <td>
@@ -460,16 +476,17 @@ document.addEventListener("DOMContentLoaded", function () {
           </div>
         </div>
       </td>
-      <td><input type="text" name="assign_${nextIndex}" placeholder="Select/Enter assignee" list="assignPerson"><datalist id="assignPerson">
-                                <option value="Chris">Chris</option>
-                                <option value="Karen">Karen</option>
-                            </datalist></td>
+      <td><input type="text" name="assign_${nextIndex}" placeholder="Select/Enter assignee" list="assignPerson">
+        <datalist id="assignPerson">
+          <option value="Chris">Chris</option>
+          <option value="Karen">Karen</option>
+        </datalist>
+      </td>
       <td><textarea name="notes_${nextIndex}" placeholder="Enter notes"></textarea></td>
       <td><input type="checkbox" name="complete_${nextIndex}" style="opacity:1;appearance:checkbox;margin-right:0"></td>
       <td><button class="deleteRowBtn">✘</button></td>
       <td></td>
     `;
-
     if (typeof initCalendar === "function") {
       initCalendar(newRow.querySelector(".calendar-wrapper"));
     }
@@ -477,28 +494,41 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // --- Delete Row (delegated) ---
   tableBody.addEventListener("click", (event) => {
+    const messageDiv = document.getElementById("message");
     if (event.target.classList.contains("deleteRowBtn")) {
       event.target.closest("tr").remove();
+    }
+
+    const duplicate = checkForDuplicates();
+    if (duplicate > 0) {
+      messageDiv.style.display = "block";
+      messageDiv.textContent = `⚠️ ${duplicate} duplicate task name${duplicate > 1 ? 's' : ''} found!`;
+    } else {
+      messageDiv.style.display = "none";
     }
   });
 
   // --- CSV Loader ---
   loadCsvBtn.addEventListener("click", () => csvFile.click());
 
-
-
-
-  csvFile.addEventListener("change", (event) => {
+ csvFile.addEventListener("change", (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (e) => loadCsvToTable(e.target.result);
+    reader.onload = (e) => {
+        loadCsvToTable(e.target.result);
+
+        // ✅ Reset the input so the same file can be selected again
+        csvFile.value = '';
+    };
     reader.readAsText(file);
-  });
+});
 
   function loadCsvToTable(csvText) {
     const rows = csvText.trim().split("\n");
+    const messageDiv = document.getElementById("message");
+
     for (const row of rows.slice(1)) {
       const cols = row.split(",");
       const nextIndex = getNextIndex();
@@ -533,12 +563,19 @@ document.addEventListener("DOMContentLoaded", function () {
       if (typeof initCalendar === "function") {
         initCalendar(newRow.querySelector(".calendar-wrapper"));
       }
+
+    }
+
+    // ✅ Check after all rows are added
+    const duplicate = checkForDuplicates();
+    if (duplicate > 0) {
+      messageDiv.style.display = "block";
+      messageDiv.textContent = `⚠️ ${duplicate} duplicate task name${duplicate > 1 ? 's' : ''} found!`;
+    } else {
+      messageDiv.style.display = "none";
     }
   }
 });
-
-
-
 </script>
 
 

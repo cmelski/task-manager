@@ -75,3 +75,42 @@ def validate_csv_upload(shared_data):
                     assert lines[i] == uploaded_tasks[start_index:end_index][i]
             start_index += 5
             end_index += 5
+
+
+@pytest.mark.csv_upload_duplicate_tasks
+@scenario('../features/list.feature', 'Verify duplicate tasks message')
+def test_csv_upload_duplicate_tasks(set_auth_state):
+    pass
+
+
+@given('The User is on dashboard page')
+def user_on_dashboard_page(browser_instance, shared_data):
+    dashboard_page = DashboardPage(browser_instance)
+    shared_data['dashboard_page'] = dashboard_page
+    time.sleep(2)
+
+
+@when('I create a new list and view the list details')
+def add_list_and_view(shared_data):
+    dashboard_page = shared_data['dashboard_page']
+    list_page = dashboard_page.add_new_list()
+    list_page.enter_list_name()
+    shared_data['list_page'] = list_page
+    time.sleep(2)
+
+
+@when('Upload the same csv template of tasks twice')
+def upload_csv_file(shared_data):
+    list_page = shared_data['list_page']
+    list_page.upload_csv()
+    time.sleep(2)
+    list_page.upload_csv()
+    time.sleep(2)
+
+
+
+@then('Duplicate tasks message is displayed')
+def validate_duplicate_tasks_message(shared_data):
+    list_page = shared_data['list_page']
+    list_page.validate_duplicate_tasks()
+

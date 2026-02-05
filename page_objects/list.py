@@ -269,3 +269,21 @@ class ListPage:
                 uploaded_tasks.append(value)
 
         return uploaded_tasks
+
+    def validate_duplicate_tasks(self):
+        task_list = []
+        expect(self.page.get_by_text('Duplicate')).to_be_visible()
+        message = self.page.locator('#message').inner_text()
+        task_cells = self.page.locator('#task_table > tbody > tr > td:has(input[name*="task_"])')
+        task_count = task_cells.count()
+
+        for i in range(task_count):
+            cell = task_cells.nth(i)
+            value = cell.locator('input').input_value()
+            task_list.append(value)
+
+        task_set = set(task_list)
+
+        duplicate_count = len(task_list) - len(task_set)
+
+        assert message == f'⚠️ {duplicate_count} duplicate task names found!'

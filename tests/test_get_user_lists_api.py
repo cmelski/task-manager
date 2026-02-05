@@ -12,6 +12,7 @@ from utils import db_connect
 from unittest.mock import patch
 
 
+
 # define a fixture and update the fixture as you go with data you will need in each function
 @pytest.fixture
 def shared_data():
@@ -19,7 +20,7 @@ def shared_data():
 
 
 # method to mock the api response
-def intercept_response(route):
+def intercept_response(route, request):
     route.fulfill(
         status=200,
         content_type="application/json",
@@ -82,8 +83,12 @@ def validate_api_response(shared_data):
     logger.info((f'User lists api: {user_lists_api}'))
 
     assert len(user_lists_dashboard) == len(user_lists_api)
-    for i in range(0, len(user_lists_api)):
-        assert user_lists_api[i][2] in user_lists_dashboard
+
+    # Extract 'list name' into a new list
+    names = [d["name"] for d in user_lists_api]
+    logger.info(f'extracted list names: {names}')
+    for name in names:
+        assert name in user_lists_dashboard
 
 
 # mock no user lists test
@@ -134,3 +139,31 @@ def get_user_lists_api_mock(url_start, shared_data, env, db_connection):
 @then('The user does not have any lists message is received from the API')
 def validate_api_response_mock(shared_data):
     assert shared_data['user_lists_api'] == "User doesn't have any lists"
+
+
+# mock no user lists test
+@pytest.mark.get_user_lists_api_mock_network_response
+@scenario('../features/api.feature', 'Mock api call user lists')
+def test_network_mock():
+    pass
+
+
+@given('The user has lists')
+def user_has_lists():
+    pass
+
+
+@when('The user goes to Dashboard the API response for no lists is mocked')
+def get_user_lists_api_mock(browser_instance_mock_api, shared_data):
+
+    dashboard_page = DashboardPage(browser_instance_mock_api)
+    shared_data['dashboard_page'] = dashboard_page
+
+    time.sleep(2)
+
+
+@then('The user sees no lists')
+def validate_api_response_mock(shared_data):
+
+    dashboard_page = shared_data['dashboard_page']
+    dashboard_page.validate_mock_api_get_user_lists()

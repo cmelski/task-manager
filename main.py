@@ -364,51 +364,48 @@ def register_user():
 
 
 @app.route('/api/get_user_lists', methods=['GET'])
+#@logged_in_only
 def get_user_lists():
-    if request.args.get("user_id"):
-        user_id = request.args.get("user_id")
+    user_id=None
+    try:
+        if request.args.get('user_id'):
+            user_id = request.args.get('user_id')
+        #user_id = 9
+        #user_id = current_user.id
+        con = DBConnect()
+        con.cursor.execute("SELECT id, user_id, name FROM list WHERE user_id = %s;", (user_id,))
+        rows = con.cursor.fetchall()
+        print(rows)
+        con.cursor.close()
 
+        # Convert each tuple to a dictionary
+        lists = [{"id": r[0], "user_id": r[1], "name": r[2]} for r in rows]
+        print(lists)
 
-        try:
-            con = DBConnect()
-            con.cursor.execute(
-                "SELECT * from list Where user_id = %s;", (user_id,)
-            )
-            lists = con.cursor.fetchall()
-            con.cursor.close()
+        return jsonify({
+            "message": "Lists returned successfully",
+            "lists": lists
+        })
 
-            if len(lists) > 0:
-                return jsonify({
-                    "message": "Lists returned successfully",
-                    "lists": lists
-                }), 200
-
-            else:
-                return jsonify({
-                    "message": "User doesn't have any lists",
-                    "lists": lists
-                }), 200
-
-
-
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
-
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/')
 def home():
-    if current_user.is_authenticated:
+    # if current_user.is_authenticated:
+    #
+    #     con = DBConnect()
+    #     con.cursor.execute(f"SELECT * from list where list.user_id = '{current_user.id}';")
+    #     lists = con.cursor.fetchall()
+    #     print(lists)
+    #     con.cursor.close()
+    #
+    #     return render_template("index.html", all_lists=lists)
+    # else:
+    #     lists = []
+    #     return render_template("index.html", all_lists=lists)
 
-        con = DBConnect()
-        con.cursor.execute(f"SELECT * from list where list.user_id = '{current_user.id}';")
-        lists = con.cursor.fetchall()
-        print(lists)
-        con.cursor.close()
-
-        return render_template("index.html", all_lists=lists)
-    else:
-        lists = []
-        return render_template("index.html", all_lists=lists)
+    return render_template("index.html")
 
 
 @app.route("/add_list", methods=["GET", "POST"])
@@ -1253,17 +1250,12 @@ def get_tasks_by_assignee_report():
       );
     """
 
-    con.cursor.execute(query)
-    rows = con.cursor.fetchall()
-
     # 4️⃣ Execute the dynamic query
     try:
         con.cursor.execute(query)
         rows = con.cursor.fetchall()
 
-        # import pandas as pd
-        # df = pd.DataFrame(rows, columns=["task", "list_id", "item_id"] + assignees)
-        # print(df)
+
     except:
         rows = []
 
